@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BERKAN · Ironman 70.3 Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="name">Berkan</div>
+      <div class="sub">Ironman 70.3 Coach</div>
+    </div>
+    <div class="sidebar-goal">
+      <div class="label">Rennen</div>
+      <div class="race">Antalya 70.3</div>
+      <div class="date">1. November 2025 · ~23 Wochen</div>
+      <div class="goal-chips">
+        <span class="chip chip-a">Sub 5:30</span>
+        <span class="chip chip-b">Sub 6:00</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Übersicht
+      </div>
+      <div class="nav-item" onclick="showPage('log')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="14"/></svg>
+        Einheit loggen
+      </div>
+      <div class="nav-item" onclick="showPage('coach')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Coach
+      </div>
+      <div class="nav-item" onclick="showPage('progress')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Fortschritt
+      </div>
+    </nav>
+    <div class="sidebar-phase">
+      <div class="label">Base 1 — Woche 1 / 25</div>
+      <div class="phase-bar"><div class="phase-fill" id="progressBar"></div></div>
+      <div class="phase-info"><span>W1</span><span>W25</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div id="page-overview" class="page active">
+      <div class="page-header">
+        <div class="page-title">Diese Woche</div>
+        <div class="page-subtitle" id="weekDateRange">Woche 1 — Base 1 Block</div>
+      </div>
+
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card">
+          <div class="stat-label">Volumen</div>
+          <div class="stat-value" id="statVolume">0<span class="stat-unit">h</span></div>
+          <div class="stat-sub">Ziel: ~8h diese Woche</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Einheiten</div>
+          <div class="stat-value" id="statSessions">0<span class="stat-unit">/6</span></div>
+          <div class="stat-sub">Geplante Woche</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ø Herzrate</div>
+          <div class="stat-value" id="statHR">—<span class="stat-unit">bpm</span></div>
+          <div class="stat-sub">Zone 2 Ziel: &lt;148</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-label">Tage bis Rennen</div>
+          <div class="stat-value" id="statDays">—</div>
+          <div class="stat-sub">1. November 2025</div>
+        </div>
+      </div>
+
+      <div class="section-title">Trainingsplan — KW <span id="weekNum">1</span></div>
+      <div class="week-row" id="weekRow"></div>
+
+      <div class="section-title">Letzte Einheiten</div>
+      <div class="activity-list" id="activityListMain">
+        <div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.<br>Starte jetzt und tracke dein Training.</p></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Wochenringe</span></div>
+          <div class="card-body">
+            <div class="rings-row" id="ringsRow">
+              <div class="ring-item">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                  <circle id="ringSwim" cx="40" cy="40" r="32" fill="none" stroke="#4A9EFF" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+                </svg>
+                <div class="ring-val" id="ringSwimVal">0</div>
+                <div class="ring-label">Swim km</div>
+              </div>
+              <div class="ring-item">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                  <circle id="ringBike" cx="40" cy="40" r="32" fill="none" stroke="#3DBA7A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+                </svg>
+                <div class="ring-val" id="ringBikeVal">0</div>
+                <div class="ring-label">Bike km</div>
+              </div>
+              <div class="ring-item">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                  <circle id="ringRun" cx="40" cy="40" r="32" fill="none" stroke="#E8354A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray 1s ease"/>
+                </svg>
+                <div class="ring-val" id="ringRunVal">0</div>
+                <div class="ring-label">Run km</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Periodisierung</span></div>
+          <div class="card-body">
+            <div class="phase-timeline" style="margin-bottom:12px">
+              <div class="phase-seg current">Base 1</div>
+              <div class="phase-seg upcoming">Base 2</div>
+              <div class="phase-seg upcoming">Build</div>
+              <div class="phase-seg upcoming">Taper</div>
+              <div class="phase-seg race-day">🏁</div>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.7">
+              <strong style="color:var(--text)">Jetzt: Base 1 (W1–5)</strong><br>
+              Fokus: Echte Zone 2. Aerobe Basis. FTP-Test & HRmax-Test stehen in W2 an.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div id="page-log" class="page">
+      <div class="page-header">
+        <div class="page-title">Einheit loggen</div>
+        <div class="page-subtitle">Training erfassen — Coach wird automatisch informiert</div>
+      </div>
+
+      <div class="log-grid">
+        <div>
+          <div class="form-section">
+            <div class="form-section-title">Sportart</div>
+            <div class="sport-grid">
+              <button class="sport-btn" id="sport-swim"  onclick="selectSport('swim')"><span>🏊</span>Swim</button>
+              <button class="sport-btn" id="sport-bike"  onclick="selectSport('bike')"><span>🚴</span>Bike</button>
+              <button class="sport-btn" id="sport-run"   onclick="selectSport('run')"><span>🏃</span>Run</button>
+              <button class="sport-btn" id="sport-brick" onclick="selectSport('brick')"><span>🔥</span>Brick</button>
+            </div>
+            <div class="field-row" style="margin-bottom:16px">
+              <div class="field">
+                <label>Datum</label>
+                <input type="date" id="fDate" />
+              </div>
+              <div class="field">
+                <label>Einheitentyp</label>
+                <select id="fType">
+                  <option value="z2">Zone 2 Basis</option>
+                  <option value="intervals">Intervalle</option>
+                  <option value="tempo">Tempo</option>
+                  <option value="long">Lange Einheit</option>
+                  <option value="recovery">Regeneration</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row three">
+              <div class="field">
+                <label>Dauer (min)</label>
+                <input type="number" id="fDur" placeholder="60" min="1" />
+              </div>
+              <div class="field">
+                <label>Distanz (km)</label>
+                <input type="number" id="fDist" placeholder="20" step="0.1" />
+              </div>
+              <div class="field">
+                <label>Ø HR (bpm)</label>
+                <input type="number" id="fHR" placeholder="138" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Max HR (bpm)</label>
+                <input type="number" id="fMaxHR" placeholder="168" />
+              </div>
+              <div class="field">
+                <label>Watt (Ø, falls verfügbar)</label>
+                <input type="number" id="fWatt" placeholder="185" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="form-section" style="margin-bottom:16px">
+            <div class="form-section-title">Wie war's?</div>
+            <div class="field">
+              <label>Gefühl während Training</label>
+              <div class="feel-grid" id="feelDuring">
+                <button class="feel-btn" onclick="setFeel('during','top')"><span>🔥</span>Top</button>
+                <button class="feel-btn" onclick="setFeel('during','gut')"><span>😊</span>Gut</button>
+                <button class="feel-btn" onclick="setFeel('during','mittel')"><span>😐</span>Mittel</button>
+                <button class="feel-btn" onclick="setFeel('during','schlecht')"><span>😓</span>Schwer</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Erholung jetzt (danach)</label>
+              <div class="feel-grid" id="feelAfter">
+                <button class="feel-btn" onclick="setFeel('after','frisch')"><span>💪</span>Frisch</button>
+                <button class="feel-btn" onclick="setFeel('after','ok')"><span>😊</span>OK</button>
+                <button class="feel-btn" onclick="setFeel('after','müde')"><span>😴</span>Müde</button>
+                <button class="feel-btn" onclick="setFeel('after','kaputt')"><span>💀</span>Kaputt</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Schlafqualität letzte Nacht</label>
+              <div class="feel-grid" id="feelSleep">
+                <button class="feel-btn" onclick="setFeel('sleep','sehr gut')"><span>🌙</span>Sehr gut</button>
+                <button class="feel-btn" onclick="setFeel('sleep','gut')"><span>😴</span>Gut</button>
+                <button class="feel-btn" onclick="setFeel('sleep','schlecht')"><span>😵</span>Schlecht</button>
+                <button class="feel-btn" onclick="setFeel('sleep','wenig')"><span>⏰</span>Zu wenig</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">Notizen</div>
+            <div class="field">
+              <textarea id="fNotes" placeholder="Wie lief's? Besonderheiten, Schmerzen, Highlights..."></textarea>
+            </div>
+            <button class="submit-btn" onclick="submitLog()">Speichern & Coach fragen →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COACH -->
+    <div id="page-coach" class="page">
+      <div class="page-header">
+        <div class="page-title">AI Coach</div>
+        <div class="coach-status-bar">
+          <div class="status-dot"></div>
+          <span>Online · kennt deinen Plan, deine Ziele, deine letzten Einheiten</span>
+        </div>
+      </div>
+
+      <div class="coach-layout">
+        <div class="quick-chips">
+          <button class="quick-chip" onclick="askCoach('Was steht morgen an?')">Plan morgen</button>
+          <button class="quick-chip" onclick="askCoach('Bin heute sehr müde. Was empfiehlst du?')">Bin müde</button>
+          <button class="quick-chip" onclick="askCoach('Wie soll meine komplette Woche aussehen?')">Wochenplan</button>
+          <button class="quick-chip" onclick="askCoach('Erkläre Zone 2 nochmal genau für mich')">Zone 2 erklären</button>
+          <button class="quick-chip" onclick="askCoach('Wie bereite ich mich auf den FTP-Test vor?')">FTP-Test Vorbereitung</button>
+          <button class="quick-chip" onclick="askCoach('Was ist mein Fokus im Base 1 Block?')">Block-Fokus</button>
+          <button class="quick-chip" onclick="askCoach('Gib mir ein Ernährungs-Tipp für lange Einheiten')">Ernährung</button>
+        </div>
+
+        <div class="coach-messages" id="coachMessages">
+          <div class="msg coach">
+            <div class="msg-avatar avatar-coach">C</div>
+            <div class="msg-bubble">Hey Berkan! Ich bin dein Coach für den Weg nach Antalya. 23 Wochen, Sub 5:30 — das ist machbar, wenn wir es smart angehen.<br><br>Wir starten in Base 1: echte Zone 2, kein Graubereich mehr. FTP-Test und HRmax-Test kommen in Woche 2 — danach haben wir deine exakten Zonen. Logge jede Einheit und sag mir wie du dich fühlst. Ich passe deinen Plan live an.<br><br>Was brauchst du gerade?</div>
+          </div>
+        </div>
+
+        <div class="coach-input-area">
+          <input type="text" id="coachInput" placeholder="Frag deinen Coach..." onkeydown="if(event.key==='Enter')sendMsg()" />
+          <button class="send-btn" onclick="sendMsg()">Senden →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="page-progress" class="page">
+      <div class="page-header">
+        <div class="page-title">Fortschritt</div>
+        <div class="page-subtitle">Alle Einheiten · Gesamtüberblick</div>
+      </div>
+      <div class="section-title">Alle Aktivitäten</div>
+      <div class="activity-list" id="activityListProgress">
+        <div class="empty"><div class="empty-icon">📈</div><p>Noch keine Daten. Starte mit dem Loggen!</p></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg">Einheit gespeichert</span>
+</div>
+
+<!-- JS: Reihenfolge wichtig — Abhängigkeiten zuerst -->
+<script src="js/constants.js"></script>
+<script src="js/Store.js"></script>
+<script src="js/CoachService.js"></script>
+<script src="js/ChatUI.js"></script>
+<script src="js/Coach.js"></script>
+<script src="js/Dashboard.js"></script>
+<script src="js/ActivityLogger.js"></script>
+<script src="js/App.js"></script>
+
+</body>
+</html>
