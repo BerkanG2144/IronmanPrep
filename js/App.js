@@ -57,23 +57,18 @@ class App {
     window.stravaDisconnect = () => { this.#stravaSvc.disconnect(); this.#stravaUI.render(); };
     window.stravaReset      = () => { localStorage.removeItem('strava_config'); location.reload(); };
     window.stravaRefresh    = () => this.#stravaUI.render();
-    window.aiPlanSaveModel  = () => {
-      const m = document.getElementById('aiModelInput')?.value;
-      if (!m) return;
-      this.#trainingPlan.saveModel(m);
-      this.showToast('Modell gespeichert: ' + m);
-    };
     window.aiPlanShowKeyInput = () => {
       const row = document.getElementById('aiKeyInputRow');
       if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
     };
-    window.aiPlanSaveKey    = () => {
+    window.aiPlanSaveKey = () => {
       const k = document.getElementById('aiApiKeyInput')?.value;
       if (!k) return;
-      this.#trainingPlan.saveApiKey(k);
+      CoachService.saveApiKey(k);
       const row = document.getElementById('aiKeyInputRow');
       if (row) row.style.display = 'none';
-      this.showToast('API Key gespeichert ✓');
+      this.#trainingPlan.render();
+      this.showToast('OpenRouter API Key gespeichert ✓');
     };
     window.setWellbeing = v => {
       document.getElementById('hf-wellbeing').value = v;

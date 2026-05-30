@@ -2,6 +2,12 @@ class CoachService {
   #store;
   #stravaActivities = [];
   #chatHistory = [];
+  #healthData = null;
+
+  static #API_KEY   = 'openrouter_api_key';
+  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
+  static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
+
   #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
 
 ZIELE: A-Ziel Sub 5:30, B-Ziel Sub 6:00.
@@ -29,8 +35,6 @@ DEIN JOB:
     this.#store = store;
   }
 
-  #healthData = null;
-
   setStravaActivities(activities) {
     this.#stravaActivities = activities || [];
   }
@@ -39,10 +43,12 @@ DEIN JOB:
     this.#healthData = data;
   }
 
+  static getApiKey()   { return localStorage.getItem(CoachService.#API_KEY) || ''; }
+  static saveApiKey(k) { localStorage.setItem(CoachService.#API_KEY, k.trim()); }
+
   #buildContext() {
     let ctx = '';
 
-    // Recent Strava activities (last 10)
     const recent = this.#stravaActivities.slice(0, 10);
     if (recent.length) {
       ctx += '\n\nSTRAVA — LETZTE EINHEITEN:\n';
@@ -59,7 +65,6 @@ DEIN JOB:
       });
     }
 
-    // This week summary
     const now = new Date();
     const monday = new Date(now);
     monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
@@ -77,13 +82,13 @@ DEIN JOB:
     if (this.#healthData) {
       const h = this.#healthData;
       ctx += `\nGESUNDHEIT (heute morgen):`;
-      if (h.hrv)        ctx += ` HRV ${h.hrv}ms`;
-      if (h.restingHR)  ctx += ` · Ruhepuls ${h.restingHR}bpm`;
-      if (h.vo2max)     ctx += ` · VO2max ${h.vo2max}`;
-      if (h.sleep)      ctx += ` · Schlaf ${h.sleep}h`;
-      if (h.rem)        ctx += ` (REM ${h.rem}h`;
-      if (h.deep)       ctx += ` Tief ${h.deep}h)`;
-      if (h.wellbeing)  ctx += ` · Befinden ${h.wellbeing}/5`;
+      if (h.hrv)       ctx += ` HRV ${h.hrv}ms`;
+      if (h.restingHR) ctx += ` · Ruhepuls ${h.restingHR}bpm`;
+      if (h.vo2max)    ctx += ` · VO2max ${h.vo2max}`;
+      if (h.sleep)     ctx += ` · Schlaf ${h.sleep}h`;
+      if (h.rem)       ctx += ` (REM ${h.rem}h`;
+      if (h.deep)      ctx += ` Tief ${h.deep}h)`;
+      if (h.wellbeing) ctx += ` · Befinden ${h.wellbeing}/5`;
       ctx += '\n';
     }
     return ctx;
@@ -91,32 +96,33 @@ DEIN JOB:
 
   async call(userMsg) {
     this.#chatHistory.push({ role: 'user', content: userMsg });
-    const apiKey = localStorage.getItem('anthropic_api_key') || '';
+
+    const apiKey = CoachService.getApiKey();
     if (!apiKey) return 'Bitte zuerst den OpenRouter API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern).';
 
-    const context = this.#SYSTEM + this.#buildContext();
-    const fullMsg = context + '\n\nNachricht von Berkan: ' + userMsg;
+    const fullMsg = this.#SYSTEM + this.#buildContext() + '\n\nNachricht von Berkan: ' + userMsg;
 
     try {
-      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const r = await fetch(CoachService.#API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'deepseek/deepseek-r1:free',
+          model: CoachService.#MODEL,
           messages: [{ role: 'user', content: fullMsg }],
           max_tokens: 1000,
           temperature: 0.7,
         }),
       });
       const d = await r.json();
+      if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
       const reply = d.choices?.[0]?.message?.content || 'Keine Antwort erhalten.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
-    } catch {
-      return 'Verbindungsfehler. Bitte nochmal versuchen.';
+    } catch (e) {
+      return `Fehler: ${e.message || 'Verbindungsfehler. Bitte nochmal versuchen.'}`;
     }
   }
 }

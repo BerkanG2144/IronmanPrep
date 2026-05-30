@@ -5,13 +5,13 @@ class TrainingPlan {
   #plan = null;
   #loading = false;
   #errorMsg = null;
-  static #CACHE_KEY     = 'ai_training_plan';
-  static #API_KEY_KEY   = 'anthropic_api_key';
-  static #MODEL_KEY     = 'ai_model';
-  static #DEFAULT_MODEL = 'mistralai/mistral-7b-instruct:free';
+
+  static #CACHE_KEY = 'ai_training_plan';
+  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
+  static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
 
   constructor(store, stravaSvc, healthSvc) {
-    this.#store     = store;
+    this.#store    = store;
     this.#stravaSvc = stravaSvc;
     this.#healthSvc = healthSvc;
     const cached = localStorage.getItem(TrainingPlan.#CACHE_KEY);
@@ -20,11 +20,7 @@ class TrainingPlan {
     }
   }
 
-  getApiKey()   { return localStorage.getItem(TrainingPlan.#API_KEY_KEY); }
-  saveApiKey(k) { localStorage.setItem(TrainingPlan.#API_KEY_KEY, k.trim()); }
-  getModel()    { return localStorage.getItem(TrainingPlan.#MODEL_KEY) || TrainingPlan.#DEFAULT_MODEL; }
-  saveModel(m)  { localStorage.setItem(TrainingPlan.#MODEL_KEY, m.trim()); }
-  isConfigured() { return !!this.getApiKey(); }
+  isConfigured() { return !!CoachService.getApiKey(); }
 
   render() {
     const container = document.getElementById('aiPlanContainer');
@@ -55,13 +51,12 @@ class TrainingPlan {
     this.#loading = true;
     this.render();
 
-    const apiKey = this.getApiKey();
-    const now    = new Date();
+    const apiKey  = CoachService.getApiKey();
+    const now     = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     const todayName = dayNames[now.getDay()];
 
-    // Recent 14 days of Strava
     const recentActs = (stravaActivities || []).slice(0, 20).map(a => {
       const dist = a.distance ? ` ${(a.distance/1000).toFixed(1)}km` : '';
       const dur  = a.moving_time ? ` ${Math.round(a.moving_time/60)}min` : '';
@@ -110,14 +105,14 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetch(TrainingPlan.#API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: this.getModel(),
+          model: TrainingPlan.#MODEL,
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
           temperature: 0.7,
@@ -126,9 +121,9 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       const data = await res.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const text = data.choices?.[0]?.message?.content || '';
-      if (!text) throw new Error('Leere Antwort von Groq.');
+      if (!text) throw new Error('Leere Antwort erhalten.');
       const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('Kein JSON gefunden');
+      if (!jsonMatch) throw new Error('Kein gültiges JSON erhalten.');
       this.#plan = JSON.parse(jsonMatch[0]);
       this.#plan._generated = new Date().toISOString();
       localStorage.setItem(TrainingPlan.#CACHE_KEY, JSON.stringify(this.#plan));
@@ -143,9 +138,9 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
   #setupHTML() {
     return `<div class="ai-plan-setup">
       <div class="ai-plan-setup-icon">🤖</div>
-      <p>Anthropic API Key eingeben für KI-Trainingsplan</p>
+      <p>OpenRouter API Key eingeben für KI-Trainingsplan</p>
       <div class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
+        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
     </div>`;
@@ -156,12 +151,8 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
       <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="OpenRouter API Key (sk-or-…)" value="${this.getApiKey() || ''}" />
+        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" value="${CoachService.getApiKey()}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
-      </div>
-      <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiModelInput" type="text" placeholder="Modell z.B. mistralai/mistral-7b-instruct:free" value="${this.getModel()}" />
-        <button onclick="aiPlanSaveModel()">Modell</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
     </div>`;
@@ -184,7 +175,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
         <button class="btn-strava-refresh" onclick="aiPlanShowKeyInput()">🔑 Key</button>
       </div>
       <div id="aiKeyInputRow" style="display:none; margin-bottom:12px;" class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
+        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <div class="ai-plan-grid">
