@@ -68,7 +68,7 @@ class App {
       if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
     };
     window.aiPlanSaveKey    = () => {
-      const k = document.getElementById('aiApiKeyInput')?.value;
+      const k = document.getElementById('aiApiKeyInput')?.value?.trim();
       if (!k) return;
       this.#trainingPlan.saveApiKey(k);
       const row = document.getElementById('aiKeyInputRow');
@@ -82,6 +82,15 @@ class App {
       });
     };
     window.aiPlanGenerate   = async () => {
+      // Auto-save key/model from visible inputs before generating
+      const keyInput   = document.getElementById('aiApiKeyInput');
+      const modelInput = document.getElementById('aiModelInput');
+      if (keyInput?.value?.trim())   this.#trainingPlan.saveApiKey(keyInput.value);
+      if (modelInput?.value?.trim()) this.#trainingPlan.saveModel(modelInput.value);
+      if (!this.#trainingPlan.isConfigured()) {
+        this.showToast('Bitte zuerst einen OpenRouter API Key eingeben.');
+        return;
+      }
       const health = await this.#healthSvc.fetchMetrics().catch(() => null);
       await this.#trainingPlan.generate(this.#stravaActivities, health);
     };
