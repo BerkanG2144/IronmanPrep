@@ -8,6 +8,10 @@ class Coach {
     this.#chatUI  = new ChatUI('coachMessages');
   }
 
+  setStravaActivities(acts) {
+    this.#service.setStravaActivities(acts);
+  }
+
   async send(inputEl) {
     if (this.#busy) return;
     const msg = inputEl.value.trim();

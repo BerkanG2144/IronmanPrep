@@ -635,3 +635,58 @@ select {
   text-align: center;
   padding-top: 16px;
 }
+
+/* ── WEEK NAV ARROWS ── */
+.week-nav-btn {
+  background: none;
+  border: 1px solid var(--border-bright);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  width: 26px; height: 26px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin: 0 6px;
+}
+.week-nav-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.week-nav-btn:disabled { opacity: 0.25; cursor: default; }
+
+/* ── HEALTH PAGE ── */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.health-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+}
+.health-card.health-coming {
+  opacity: 0.6;
+}
+.health-card-icon { font-size: 28px; margin-bottom: 10px; }
+.health-card-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.health-card-value {
+  font-family: var(--font-display);
+  font-size: 36px; font-weight: 800; line-height: 1;
+}
+.health-card-sub {
+  font-size: 10px; color: var(--text-dim); margin-top: 6px;
+}
+.health-load-placeholder {
+  background: var(--surface);
+  border: 1px dashed var(--border-bright);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+.health-placeholder-text { font-size: 13px; color: var(--text-dim); }

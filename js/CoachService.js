@@ -1,47 +1,73 @@
 class CoachService {
   #store;
+  #stravaActivities = [];
   #chatHistory = [];
-  #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, dritter Ironman 70.3 (Antalya, 1. November 2025).
+  #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
 
 ZIELE: A-Ziel Sub 5:30, B-Ziel Sub 6:00.
 
 KONTEXT:
-- Woche 1 von 25, Block: Base 1 (Wochen 1-5)
-- Bisher trainiert er im Graubereich ~160 bpm statt echter Zone 2 — das wird jetzt korrigiert
 - Smart Trainer Van Rysel D100 (ERG-fähig) für strukturiertes Radtraining
-- FTP-Test + HRmax-Test stehen in Woche 2 an
 - Schwimmen ist relative Stärke
 - Kein Powermeter am Straßenrad
+- Trainiert regelmäßig auf Zwift (VirtualRide)
 
 TRAININGS-PHILOSOPHIE:
 - Polarisiertes Training: echte Zone 2 (Basis), keine Grauzone
-- 4 Blöcke: Base1 → Base2/Volumen (W6-13) → Build (W14-21) → Taper (W22-23)
+- 4 Blöcke: Base1 → Base2/Volumen → Build → Taper
 - Zone 2 auf dem Trainer: wattbasiert. Laufen/Schwimmen: HR-basiert
 
 DEIN JOB:
 - Sprich Berkan direkt an, locker und motivierend
-- Analysiere geloggte Einheiten (HR-Daten, Gefühl, Erholung)
-- Passe Empfehlungen an Müdigkeit und Erholung an
+- Stütze dich auf seine echten Strava-Daten (Distanz, Zeit, HR, Watt)
+- Erkenne Muster: Überbelastung, Fortschritt, Zonentreue
 - Erkläre kurz das "Warum" hinter Entscheidungen
 - Plane die nächsten 1-3 Tage konkret
-- Antworte auf Deutsch, max 150 Wörter, direkt und coachend`;
+- Antworte auf Deutsch, max 200 Wörter, direkt und coachend`;
 
   constructor(store) {
     this.#store = store;
   }
 
+  setStravaActivities(activities) {
+    this.#stravaActivities = activities || [];
+  }
+
   #buildContext() {
-    const last5 = this.#store.getLast(5);
-    if (!last5.length) return '';
-    let ctx = '\n\nLETZTE EINHEITEN:\n';
-    last5.forEach(a => {
-      ctx += `- ${a.date}: ${SPORT_NAMES[a.sport]}, ${a.dur}min`;
-      if (a.dist)  ctx += `, ${a.dist}km`;
-      if (a.hr)    ctx += `, ØHR ${a.hr}bpm`;
-      ctx += `, Gefühl: ${a.feelDuring}/${a.feelAfter}, Schlaf: ${a.sleep || 'n/a'}`;
-      if (a.notes) ctx += `, Notiz: ${a.notes}`;
-      ctx += '\n';
-    });
+    let ctx = '';
+
+    // Recent Strava activities (last 10)
+    const recent = this.#stravaActivities.slice(0, 10);
+    if (recent.length) {
+      ctx += '\n\nSTRAVA — LETZTE EINHEITEN:\n';
+      recent.forEach(a => {
+        const dist = a.distance ? ` ${(a.distance/1000).toFixed(1)}km` : '';
+        const dur  = a.moving_time ? ` ${Math.round(a.moving_time/60)}min` : '';
+        const hr   = a.average_heartrate ? ` ØHR ${Math.round(a.average_heartrate)}bpm` : '';
+        const watt = a.average_watts ? ` ØWatt ${Math.round(a.average_watts)}W` : '';
+        const pace = a.type === 'Run' && a.distance && a.moving_time
+          ? ` Pace ${Math.floor(a.moving_time/a.distance*1000/60)}:${String(Math.round(a.moving_time/a.distance*1000%60)).padStart(2,'0')}/km` : '';
+        const spd  = (a.type === 'Ride' || a.type === 'VirtualRide') && a.average_speed
+          ? ` ${(a.average_speed*3.6).toFixed(1)}km/h` : '';
+        ctx += `- ${a.start_date_local?.split('T')[0]} ${a.type}: ${a.name}${dist}${dur}${hr}${watt}${pace}${spd}\n`;
+      });
+    }
+
+    // This week summary
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    monday.setHours(0,0,0,0);
+    const mondayStr = monday.toISOString().split('T')[0];
+    const weekActs  = this.#stravaActivities.filter(a => (a.start_date_local || '') >= mondayStr);
+    if (weekActs.length) {
+      const totalH = (weekActs.reduce((s,a) => s + (a.moving_time||0), 0) / 3600).toFixed(1);
+      const runKm  = weekActs.filter(a => a.type==='Run').reduce((s,a) => s+(a.distance||0)/1000, 0).toFixed(1);
+      const bikeKm = weekActs.filter(a => a.type==='Ride'||a.type==='VirtualRide').reduce((s,a) => s+(a.distance||0)/1000, 0).toFixed(1);
+      const swimKm = weekActs.filter(a => a.type==='Swim').reduce((s,a) => s+(a.distance||0)/1000, 0).toFixed(1);
+      ctx += `\nDIESE WOCHE: ${weekActs.length} Einheiten, ${totalH}h — Laufen ${runKm}km, Rad ${bikeKm}km, Schwimmen ${swimKm}km\n`;
+    }
+
     return ctx;
   }
 

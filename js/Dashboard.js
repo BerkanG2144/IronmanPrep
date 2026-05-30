@@ -1,6 +1,7 @@
 class Dashboard {
   #store;
   #stravaActivities = [];
+  #weekOffset = 0;
 
   constructor(store) {
     this.#store = store;
@@ -8,6 +9,11 @@ class Dashboard {
 
   setStravaActivities(activities) {
     this.#stravaActivities = activities || [];
+    this.update();
+  }
+
+  setWeekOffset(offset) {
+    this.#weekOffset = offset;
     this.update();
   }
 
@@ -48,15 +54,24 @@ class Dashboard {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  #updateStats() {
+  #weekMonday() {
     const now    = new Date();
     const monday = new Date(now);
-    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    monday.setDate(now.getDate() - (now.getDay() || 7) + 1 + this.#weekOffset * 7);
     monday.setHours(0, 0, 0, 0);
-    const mondayStr = this.#localDateStr(monday);
-    const todayStr  = this.#localDateStr(now);
+    return monday;
+  }
 
-    const days = Math.max(0, Math.ceil((new Date('2025-11-01') - now) / 86400000));
+  #updateStats() {
+    const now       = new Date();
+    const monday    = this.#weekMonday();
+    const sunday    = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    const mondayStr = this.#localDateStr(monday);
+    // For past weeks show full week; for current week only up to today
+    const isCurrentWeek = this.#weekOffset === 0;
+    const todayStr  = isCurrentWeek ? this.#localDateStr(now) : this.#localDateStr(sunday);
+
+    const days = Math.max(0, Math.ceil((new Date('2026-11-01') - now) / 86400000));
     document.getElementById('statDays').textContent = days;
 
     // Use Strava activities this week for stats
@@ -74,11 +89,9 @@ class Dashboard {
     const avgHR  = withHR.length ? Math.round(withHR.reduce((s, a) => s + a.average_heartrate, 0) / withHR.length) : null;
     document.getElementById('statHR').innerHTML = (avgHR || '—') + '<span class="stat-unit">bpm</span>';
 
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
     const fmt = d => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-    document.getElementById('weekDateRange').textContent = `${fmt(monday)} – ${fmt(sunday)} · Base 1 Block`;
-    document.getElementById('weekNum').textContent = this.#isoWeekNumber(now);
+    document.getElementById('weekDateRange').textContent = `${fmt(monday)} – ${fmt(sunday)}${isCurrentWeek ? ' · Aktuelle Woche' : ''}`;
+    document.getElementById('weekNum').textContent = this.#isoWeekNumber(monday);
   }
 
   #isoWeekNumber(d) {
@@ -91,11 +104,7 @@ class Dashboard {
   #updateWeekRow() {
     const now      = new Date();
     const todayStr = this.#localDateStr(now);
-
-    // Monday of current week
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
-    monday.setHours(0, 0, 0, 0);
+    const monday   = this.#weekMonday();
 
     // Build date strings for Mon–Sun using local time (no UTC shift)
     const weekDates = Array.from({ length: 7 }, (_, i) => {
@@ -177,12 +186,11 @@ class Dashboard {
   }
 
   #updateRings() {
-    const now      = new Date();
-    const monday   = new Date(now);
-    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
-    monday.setHours(0, 0, 0, 0);
+    const now       = new Date();
+    const monday    = this.#weekMonday();
+    const sunday    = new Date(monday); sunday.setDate(monday.getDate() + 6);
     const mondayStr = this.#localDateStr(monday);
-    const todayStr  = this.#localDateStr(now);
+    const todayStr  = this.#weekOffset === 0 ? this.#localDateStr(now) : this.#localDateStr(sunday);
 
     const weekActs = this.#stravaActivities.filter(a => {
       const d = a.start_date_local?.split('T')[0] || '';
