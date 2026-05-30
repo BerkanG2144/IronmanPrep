@@ -8,6 +8,14 @@ class Coach {
     this.#chatUI  = new ChatUI('coachMessages');
   }
 
+  setStravaActivities(acts) {
+    this.#service.setStravaActivities(acts);
+  }
+
+  setHealthData(data) {
+    this.#service.setHealthData(data);
+  }
+
   async send(inputEl) {
     if (this.#busy) return;
     const msg = inputEl.value.trim();
