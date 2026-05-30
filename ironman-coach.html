@@ -187,39 +187,65 @@
     <div id="page-health" class="page">
       <div class="page-header">
         <div class="page-title">Gesundheit</div>
-        <div class="page-subtitle">Körper · Schlaf · Leistung</div>
+        <div class="page-subtitle" id="healthUpdated">Apple Watch · wird geladen…</div>
+      </div>
+
+      <div id="healthSetupBanner" class="health-setup-banner" style="display:none">
+        <p>GitHub Token für Health-Sync eingeben:</p>
+        <div class="health-token-row">
+          <input id="healthTokenInput" type="password" placeholder="ghp_…" />
+          <button onclick="healthSaveToken()">Speichern</button>
+        </div>
       </div>
 
       <div class="health-grid">
-        <div class="health-card health-coming">
+        <div class="health-card" id="hcHRV">
           <div class="health-card-icon">❤️</div>
-          <div class="health-card-label">Herzfrequenzvariabilität</div>
-          <div class="health-card-value">—</div>
-          <div class="health-card-sub">Apple Watch · bald verfügbar</div>
+          <div class="health-card-label">HRV</div>
+          <div class="health-card-value" id="hvHRV">—</div>
+          <div class="health-card-sub">ms · letzte Nacht</div>
         </div>
-        <div class="health-card health-coming">
+        <div class="health-card" id="hcVO2">
           <div class="health-card-icon">🫁</div>
           <div class="health-card-label">VO₂ Max</div>
-          <div class="health-card-value">—</div>
-          <div class="health-card-sub">Apple Watch · bald verfügbar</div>
+          <div class="health-card-value" id="hvVO2">—</div>
+          <div class="health-card-sub">ml/kg/min</div>
         </div>
-        <div class="health-card health-coming">
+        <div class="health-card" id="hcSleep">
           <div class="health-card-icon">🌙</div>
           <div class="health-card-label">Schlaf</div>
-          <div class="health-card-value">—</div>
-          <div class="health-card-sub">Apple Watch · bald verfügbar</div>
+          <div class="health-card-value" id="hvSleep">—</div>
+          <div class="health-card-sub" id="hvSleepSub">letzte Nacht</div>
         </div>
-        <div class="health-card health-coming">
+        <div class="health-card" id="hcRHR">
           <div class="health-card-icon">⚡</div>
           <div class="health-card-label">Ruhepuls</div>
-          <div class="health-card-value">—</div>
-          <div class="health-card-sub">Apple Watch · bald verfügbar</div>
+          <div class="health-card-value" id="hvRHR">—</div>
+          <div class="health-card-sub">bpm</div>
         </div>
       </div>
 
-      <div class="section-title">Trainingsbelastung — letzte 8 Wochen</div>
-      <div class="health-load-placeholder">
-        <div class="health-placeholder-text">📊 Verlaufsgrafik wird hier erscheinen sobald Apple Watch Daten verbunden sind</div>
+      <div class="section-title">iPhone Kurzbefehl einrichten</div>
+      <div class="health-shortcut-card">
+        <p>Erstelle diesen Kurzbefehl auf deinem iPhone — er läuft jeden Morgen automatisch und schickt deine Daten hierher.</p>
+        <div class="shortcut-steps">
+          <div class="shortcut-step"><span class="step-num">1</span>Öffne die <strong>Kurzbefehle</strong> App → "+" → neuer Kurzbefehl</div>
+          <div class="shortcut-step"><span class="step-num">2</span>Füge hinzu: <strong>„Gesundheitsdaten abfragen"</strong> — jeweils für: HRV (letzter Wert), VO2max, Ruhepuls, Schlafdauer</div>
+          <div class="shortcut-step"><span class="step-num">3</span>Füge hinzu: <strong>„URL-Inhalt abrufen"</strong> mit diesen Einstellungen:
+            <div class="shortcut-code">URL: https://api.github.com/gists/136cd353a241c3ef98ced71a54ea8b28
+Methode: PATCH
+Header: Authorization → token DEIN_TOKEN
+Body (JSON):
+{
+  "files": {
+    "health.json": {
+      "content": "{\"hrv\": [HRV-Wert], \"vo2max\": [VO2-Wert], \"restingHR\": [Puls-Wert], \"sleep\": [Schlaf in h]}"
+    }
+  }
+}</div>
+          </div>
+          <div class="shortcut-step"><span class="step-num">4</span>Gehe zu <strong>Automation</strong> → "+" → Tageszeit → jeden Morgen 07:00 → diesen Kurzbefehl ausführen</div>
+        </div>
       </div>
     </div>
 
@@ -247,6 +273,7 @@
 <script src="js/Coach.js"></script>
 <script src="js/Dashboard.js"></script>
 <script src="js/ActivityLogger.js"></script>
+<script src="js/HealthService.js"></script>
 <script src="js/StravaService.js"></script>
 <script src="js/StravaUI.js"></script>
 <script src="js/App.js"></script>

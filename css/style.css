@@ -690,3 +690,43 @@ select {
   text-align: center;
 }
 .health-placeholder-text { font-size: 13px; color: var(--text-dim); }
+
+/* ── HEALTH SETUP & SHORTCUT ── */
+.health-setup-banner {
+  background: rgba(245,166,35,.08); border: 1px solid rgba(245,166,35,.3);
+  border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+}
+.health-setup-banner p { font-size: 13px; margin-bottom: 10px; }
+.health-token-row { display: flex; gap: 10px; }
+.health-token-row input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border-bright);
+  border-radius: 8px; padding: 9px 14px; font-size: 13px; color: var(--text); outline: none;
+}
+.health-token-row button {
+  background: var(--amber); color: #000; border: none; border-radius: 8px;
+  padding: 9px 18px; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+.health-shortcut-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 24px;
+}
+.health-shortcut-card > p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.shortcut-steps { display: flex; flex-direction: column; gap: 14px; }
+.shortcut-step {
+  display: flex; gap: 14px; align-items: flex-start;
+  font-size: 13px; line-height: 1.6;
+}
+.step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--red); color: white;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.shortcut-code {
+  margin-top: 8px; background: var(--surface3);
+  border-radius: 8px; padding: 12px 14px;
+  font-family: monospace; font-size: 11px;
+  color: var(--blue); line-height: 1.8; white-space: pre;
+}
