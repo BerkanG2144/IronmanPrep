@@ -7,7 +7,7 @@ class TrainingPlan {
   #errorMsg = null;
 
   static #CACHE_KEY = 'ai_training_plan';
-  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
+  static #MODEL     = 'deepseek/deepseek-chat-v3-0324:free';
   static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
 
   constructor(store, stravaSvc, healthSvc) {

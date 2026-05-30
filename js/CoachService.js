@@ -5,7 +5,7 @@ class CoachService {
   #healthData = null;
 
   static #API_KEY   = 'openrouter_api_key';
-  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
+  static #MODEL     = 'deepseek/deepseek-chat-v3-0324:free';
   static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
 
   #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
