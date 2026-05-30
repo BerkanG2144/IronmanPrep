@@ -44,23 +44,36 @@ class Dashboard {
     this.#updateRings();
   }
 
+  #localDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
   #updateStats() {
-    const activities = this.#store.getAll();
-    const now = new Date();
+    const now    = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    monday.setHours(0, 0, 0, 0);
+    const mondayStr = this.#localDateStr(monday);
+    const todayStr  = this.#localDateStr(now);
 
     const days = Math.max(0, Math.ceil((new Date('2025-11-01') - now) / 86400000));
     document.getElementById('statDays').textContent = days;
 
-    const totalMins = activities.reduce((s, a) => s + a.dur, 0);
-    document.getElementById('statVolume').innerHTML   = (totalMins / 60).toFixed(1) + '<span class="stat-unit">h</span>';
-    document.getElementById('statSessions').innerHTML = activities.length + '<span class="stat-unit">/6</span>';
+    // Use Strava activities this week for stats
+    const ENDURANCE = new Set(['Run','Ride','VirtualRide','Swim','Walk','Hike']);
+    const weekActs  = this.#stravaActivities.filter(a => {
+      const d = a.start_date_local?.split('T')[0] || '';
+      return d >= mondayStr && d <= todayStr;
+    });
 
-    const withHR = activities.filter(a => a.hr > 0);
-    const avgHR  = withHR.length ? Math.round(withHR.reduce((s, a) => s + a.hr, 0) / withHR.length) : null;
+    const totalMins = weekActs.reduce((s, a) => s + Math.round((a.moving_time || 0) / 60), 0);
+    document.getElementById('statVolume').innerHTML   = (totalMins / 60).toFixed(1) + '<span class="stat-unit">h</span>';
+    document.getElementById('statSessions').innerHTML = weekActs.length + '<span class="stat-unit"> Einh.</span>';
+
+    const withHR = weekActs.filter(a => a.average_heartrate > 0);
+    const avgHR  = withHR.length ? Math.round(withHR.reduce((s, a) => s + a.average_heartrate, 0) / withHR.length) : null;
     document.getElementById('statHR').innerHTML = (avgHR || '—') + '<span class="stat-unit">bpm</span>';
 
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     const fmt = d => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
@@ -76,19 +89,19 @@ class Dashboard {
   }
 
   #updateWeekRow() {
-    const now    = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const now      = new Date();
+    const todayStr = this.#localDateStr(now);
 
     // Monday of current week
     const monday = new Date(now);
     monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
     monday.setHours(0, 0, 0, 0);
 
-    // Build date strings for Mon–Sun
+    // Build date strings for Mon–Sun using local time (no UTC shift)
     const weekDates = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      return d.toISOString().split('T')[0];
+      return this.#localDateStr(d);
     });
 
     const DAY_LABELS = ['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'];
@@ -164,10 +177,21 @@ class Dashboard {
   }
 
   #updateRings() {
-    const activities = this.#store.getAll();
-    const swimKm = activities.filter(a => a.sport === 'swim').reduce((s, a) => s + a.dist, 0);
-    const bikeKm = activities.filter(a => a.sport === 'bike').reduce((s, a) => s + a.dist, 0);
-    const runKm  = activities.filter(a => a.sport === 'run').reduce((s, a) => s + a.dist, 0);
+    const now      = new Date();
+    const monday   = new Date(now);
+    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    monday.setHours(0, 0, 0, 0);
+    const mondayStr = this.#localDateStr(monday);
+    const todayStr  = this.#localDateStr(now);
+
+    const weekActs = this.#stravaActivities.filter(a => {
+      const d = a.start_date_local?.split('T')[0] || '';
+      return d >= mondayStr && d <= todayStr;
+    });
+
+    const swimKm = weekActs.filter(a => a.type === 'Swim').reduce((s, a) => s + (a.distance || 0) / 1000, 0);
+    const bikeKm = weekActs.filter(a => a.type === 'Ride' || a.type === 'VirtualRide').reduce((s, a) => s + (a.distance || 0) / 1000, 0);
+    const runKm  = weekActs.filter(a => a.type === 'Run').reduce((s, a) => s + (a.distance || 0) / 1000, 0);
     const circ   = 2 * Math.PI * 32;
 
     const setRing = (id, valId, km, target) => {
