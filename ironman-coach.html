@@ -44,6 +44,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Fortschritt
       </div>
+      <div class="nav-item" onclick="showPage('strava')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Strava
+      </div>
     </nav>
     <div class="sidebar-phase">
       <div class="label">Base 1 — Woche 1 / 25</div>
@@ -293,6 +297,14 @@
       </div>
     </div>
 
+    <!-- STRAVA -->
+    <div id="page-strava" class="page">
+      <div class="page-header">
+        <div class="page-title">Strava</div>
+        <div class="page-subtitle">Deine echten Trainingsdaten</div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -309,6 +321,8 @@
 <script src="js/Coach.js"></script>
 <script src="js/Dashboard.js"></script>
 <script src="js/ActivityLogger.js"></script>
+<script src="js/StravaService.js"></script>
+<script src="js/StravaUI.js"></script>
 <script src="js/App.js"></script>
 
 </body>
