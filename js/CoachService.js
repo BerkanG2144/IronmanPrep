@@ -91,8 +91,8 @@ DEIN JOB:
 
   async call(userMsg) {
     this.#chatHistory.push({ role: 'user', content: userMsg });
-    const apiKey = localStorage.getItem('ai_training_plan_api_key') || '';
-    if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern).';
+    const apiKey = localStorage.getItem('anthropic_api_key') || '';
+    if (!apiKey) return 'Bitte zuerst den OpenRouter API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern).';
 
     const context = this.#SYSTEM + this.#buildContext();
     const fullMsg = context + '\n\nNachricht von Berkan: ' + userMsg;
