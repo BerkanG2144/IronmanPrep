@@ -524,3 +524,114 @@ select {
 .strava-act-row:hover { border-color: var(--border-bright); }
 .strava-empty { color: var(--text-secondary); font-size: 14px; padding: 20px; text-align: center; }
 .strava-error-page { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+/* ── WHITEBOARD WEEK ── */
+.whiteboard-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.wb-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.wb-day.wb-today {
+  border-color: var(--red);
+  box-shadow: 0 0 0 1px rgba(232,53,74,0.15);
+}
+
+.wb-day.wb-future {
+  opacity: 0.4;
+}
+
+.wb-day.wb-empty-past {
+  opacity: 0.5;
+}
+
+.wb-day-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.wb-day-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.wb-today .wb-day-label {
+  color: var(--red);
+}
+
+.wb-day-date {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.wb-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.wb-act {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.wb-act-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.wb-act-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wb-act-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.wb-act-meta {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+.wb-rest {
+  font-size: 18px;
+  color: var(--text-dim);
+  text-align: center;
+  padding-top: 16px;
+}

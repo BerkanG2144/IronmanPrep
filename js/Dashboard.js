@@ -45,7 +45,7 @@ class Dashboard {
   }
 
   #updateStats() {
-    const activities = this.#allActivities();
+    const activities = this.#store.getAll();
     const now = new Date();
 
     const days = Math.max(0, Math.ceil((new Date('2025-11-01') - now) / 86400000));
@@ -76,24 +76,70 @@ class Dashboard {
   }
 
   #updateWeekRow() {
-    const activities = this.#allActivities();
-    const dayMap = [6, 0, 1, 2, 3, 4, 5];
-    const today  = dayMap[new Date().getDay()];
+    const now    = new Date();
+    const todayStr = now.toISOString().split('T')[0];
 
-    document.getElementById('weekRow').innerHTML = WEEK_PLAN.map((p, i) => {
-      const isToday = today === i;
-      const done    = activities.some(a => dayMap[new Date(a.date).getDay()] === i);
-      return `<div class="day-cell ${p.type === 'rest' ? 'rest' : ''} ${isToday ? 'today' : ''} ${done ? 'completed' : ''}">
-        <div class="d-label">${p.day}</div>
-        <div class="d-icon">${done ? '✅' : p.icon}</div>
-        <div class="d-type">${p.label}</div>
-        <div class="d-dur">${p.dur}</div>
+    // Monday of current week
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    monday.setHours(0, 0, 0, 0);
+
+    // Build date strings for Mon–Sun
+    const weekDates = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d.toISOString().split('T')[0];
+    });
+
+    const DAY_LABELS = ['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'];
+    const SPORT_ICONS_S = { Run: '🏃', Ride: '🚴', VirtualRide: '🚴', Swim: '🏊', Walk: '🚶', WeightTraining: '🏋️', Workout: '💪' };
+    const BADGE_S = { Run: 'badge-run', Ride: 'badge-bike', VirtualRide: 'badge-bike', Swim: 'badge-swim' };
+
+    // Group Strava activities by date
+    const byDate = {};
+    this.#stravaActivities.forEach(a => {
+      const d = a.start_date_local?.split('T')[0];
+      if (!d) return;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(a);
+    });
+
+    document.getElementById('weekRow').innerHTML = weekDates.map((dateStr, i) => {
+      const isToday  = dateStr === todayStr;
+      const isPast   = dateStr <= todayStr;
+      const acts     = byDate[dateStr] || [];
+      const fmt      = new Date(dateStr + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+
+      const actsHTML = acts.map(a => {
+        const icon  = SPORT_ICONS_S[a.type] || '🏅';
+        const badge = BADGE_S[a.type] || 'badge-run';
+        const dist  = a.distance > 0 ? (a.distance / 1000).toFixed(1) + ' km' : '';
+        const dur   = a.moving_time ? Math.round(a.moving_time / 60) + ' min' : '';
+        const hr    = a.average_heartrate ? Math.round(a.average_heartrate) + ' bpm' : '';
+        const line2 = [dist, dur, hr].filter(Boolean).join(' · ');
+        return `<div class="wb-act">
+          <div class="wb-act-icon ${badge}">${icon}</div>
+          <div class="wb-act-info">
+            <div class="wb-act-name">${a.name}</div>
+            ${line2 ? `<div class="wb-act-meta">${line2}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="wb-day ${isToday ? 'wb-today' : ''} ${!isPast ? 'wb-future' : ''} ${isPast && acts.length === 0 ? 'wb-empty-past' : ''}">
+        <div class="wb-day-header">
+          <span class="wb-day-label">${DAY_LABELS[i]}</span>
+          <span class="wb-day-date">${fmt}</span>
+        </div>
+        <div class="wb-acts">
+          ${actsHTML || (isPast ? '<div class="wb-rest">—</div>' : '')}
+        </div>
       </div>`;
     }).join('');
   }
 
   #updateActivityLists() {
-    const activities = this.#allActivities();
+    const activities = this.#store.getAll();
     const html = activities.length
       ? activities.slice().reverse().map(Dashboard.#activityHTML).join('')
       : '<div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.</p></div>';
@@ -118,7 +164,7 @@ class Dashboard {
   }
 
   #updateRings() {
-    const activities = this.#allActivities();
+    const activities = this.#store.getAll();
     const swimKm = activities.filter(a => a.sport === 'swim').reduce((s, a) => s + a.dist, 0);
     const bikeKm = activities.filter(a => a.sport === 'bike').reduce((s, a) => s + a.dist, 0);
     const runKm  = activities.filter(a => a.sport === 'run').reduce((s, a) => s + a.dist, 0);
