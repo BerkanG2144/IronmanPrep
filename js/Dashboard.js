@@ -165,8 +165,7 @@ class Dashboard {
     const html = activities.length
       ? activities.slice().reverse().map(Dashboard.#activityHTML).join('')
       : '<div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.</p></div>';
-    document.getElementById('activityListMain').innerHTML     = html;
-    document.getElementById('activityListProgress').innerHTML = html;
+    document.getElementById('activityListMain').innerHTML = html;
   }
 
   static #activityHTML(a) {
