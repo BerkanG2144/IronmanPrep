@@ -105,7 +105,7 @@ DEIN JOB:
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-3.3-70b-instruct:free',
+          model: 'google/gemma-3-27b-it:free',
           messages: [{ role: 'user', content: fullMsg }],
           max_tokens: 1000,
           temperature: 0.7,
