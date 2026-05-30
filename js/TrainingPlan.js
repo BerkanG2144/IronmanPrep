@@ -5,8 +5,10 @@ class TrainingPlan {
   #plan = null;
   #loading = false;
   #errorMsg = null;
-  static #CACHE_KEY = 'ai_training_plan';
-  static #API_KEY_KEY = 'anthropic_api_key';
+  static #CACHE_KEY     = 'ai_training_plan';
+  static #API_KEY_KEY   = 'anthropic_api_key';
+  static #MODEL_KEY     = 'ai_model';
+  static #DEFAULT_MODEL = 'mistralai/mistral-7b-instruct:free';
 
   constructor(store, stravaSvc, healthSvc) {
     this.#store     = store;
@@ -18,8 +20,10 @@ class TrainingPlan {
     }
   }
 
-  getApiKey() { return localStorage.getItem(TrainingPlan.#API_KEY_KEY); }
+  getApiKey()   { return localStorage.getItem(TrainingPlan.#API_KEY_KEY); }
   saveApiKey(k) { localStorage.setItem(TrainingPlan.#API_KEY_KEY, k.trim()); }
+  getModel()    { return localStorage.getItem(TrainingPlan.#MODEL_KEY) || TrainingPlan.#DEFAULT_MODEL; }
+  saveModel(m)  { localStorage.setItem(TrainingPlan.#MODEL_KEY, m.trim()); }
   isConfigured() { return !!this.getApiKey(); }
 
   render() {
@@ -113,7 +117,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'deepseek/deepseek-r1:free',
+          model: this.getModel(),
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
           temperature: 0.7,
@@ -154,6 +158,10 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="health-token-row" style="width:100%;max-width:420px">
         <input id="aiApiKeyInput" type="password" placeholder="OpenRouter API Key (sk-or-…)" value="${this.getApiKey() || ''}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
+      </div>
+      <div class="health-token-row" style="width:100%;max-width:420px">
+        <input id="aiModelInput" type="text" placeholder="Modell z.B. mistralai/mistral-7b-instruct:free" value="${this.getModel()}" />
+        <button onclick="aiPlanSaveModel()">Modell</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
     </div>`;

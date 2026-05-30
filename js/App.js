@@ -57,6 +57,12 @@ class App {
     window.stravaDisconnect = () => { this.#stravaSvc.disconnect(); this.#stravaUI.render(); };
     window.stravaReset      = () => { localStorage.removeItem('strava_config'); location.reload(); };
     window.stravaRefresh    = () => this.#stravaUI.render();
+    window.aiPlanSaveModel  = () => {
+      const m = document.getElementById('aiModelInput')?.value;
+      if (!m) return;
+      this.#trainingPlan.saveModel(m);
+      this.showToast('Modell gespeichert: ' + m);
+    };
     window.aiPlanShowKeyInput = () => {
       const row = document.getElementById('aiKeyInputRow');
       if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
