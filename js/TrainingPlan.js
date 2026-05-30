@@ -158,6 +158,11 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
         <span class="ai-plan-tag">🤖 KI Vorschlag</span>
         <span class="ai-plan-date">${gen}</span>
         <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Neu</button>
+        <button class="btn-strava-refresh" onclick="aiPlanShowKeyInput()">🔑 Key</button>
+      </div>
+      <div id="aiKeyInputRow" style="display:none; margin-bottom:12px;" class="health-token-row">
+        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
+        <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <div class="ai-plan-grid">
         ${days.map(d => `

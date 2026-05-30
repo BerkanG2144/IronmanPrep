@@ -57,11 +57,17 @@ class App {
     window.stravaDisconnect = () => { this.#stravaSvc.disconnect(); this.#stravaUI.render(); };
     window.stravaReset      = () => { localStorage.removeItem('strava_config'); location.reload(); };
     window.stravaRefresh    = () => this.#stravaUI.render();
+    window.aiPlanShowKeyInput = () => {
+      const row = document.getElementById('aiKeyInputRow');
+      if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+    };
     window.aiPlanSaveKey    = () => {
       const k = document.getElementById('aiApiKeyInput')?.value;
       if (!k) return;
       this.#trainingPlan.saveApiKey(k);
-      this.#trainingPlan.render();
+      const row = document.getElementById('aiKeyInputRow');
+      if (row) row.style.display = 'none';
+      this.showToast('API Key gespeichert ✓');
     };
     window.setWellbeing = v => {
       document.getElementById('hf-wellbeing').value = v;
