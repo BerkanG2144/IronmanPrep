@@ -5,6 +5,8 @@ class App {
   #stravaSvc;
   #stravaUI;
   #healthSvc;
+  #trainingPlan;
+  #stravaActivities = [];
   #weekOffset = 0;
   static #PAGES = ['overview', 'coach', 'health', 'strava'];
 
@@ -12,9 +14,11 @@ class App {
     this.#store     = new Store();
     this.#dashboard = new Dashboard(this.#store);
     this.#coach     = new Coach(this.#store);
-    this.#healthSvc = new HealthService();
-    this.#stravaSvc = new StravaService();
-    this.#stravaUI  = new StravaUI(this.#stravaSvc, acts => {
+    this.#healthSvc   = new HealthService();
+    this.#stravaSvc   = new StravaService();
+    this.#trainingPlan = new TrainingPlan(this.#store, this.#stravaSvc, this.#healthSvc);
+    this.#stravaUI    = new StravaUI(this.#stravaSvc, acts => {
+      this.#stravaActivities = acts;
       this.#dashboard.setStravaActivities(acts);
       this.#coach.setStravaActivities(acts);
     });
@@ -53,6 +57,22 @@ class App {
     window.stravaDisconnect = () => { this.#stravaSvc.disconnect(); this.#stravaUI.render(); };
     window.stravaReset      = () => { localStorage.removeItem('strava_config'); location.reload(); };
     window.stravaRefresh    = () => this.#stravaUI.render();
+    window.aiPlanSaveKey    = () => {
+      const k = document.getElementById('aiApiKeyInput')?.value;
+      if (!k) return;
+      this.#trainingPlan.saveApiKey(k);
+      this.#trainingPlan.render();
+    };
+    window.setWellbeing = v => {
+      document.getElementById('hf-wellbeing').value = v;
+      document.querySelectorAll('.wb-btn').forEach((b, i) => {
+        b.classList.toggle('wb-btn-active', i + 1 === v);
+      });
+    };
+    window.aiPlanGenerate   = async () => {
+      const health = await this.#healthSvc.fetchMetrics().catch(() => null);
+      await this.#trainingPlan.generate(this.#stravaActivities, health);
+    };
     window.healthSaveToken  = () => {
       const t = document.getElementById('healthTokenInput')?.value;
       if (!t) return;
@@ -65,19 +85,22 @@ class App {
         const v = parseFloat(document.getElementById(id)?.value);
         return isNaN(v) ? null : v;
       };
+      const wb = parseInt(document.getElementById('hf-wellbeing')?.value);
       const data = {
-        sleep:  get('hf-sleep'),
-        rem:    get('hf-rem'),
-        core:   get('hf-core'),
-        deep:   get('hf-deep'),
-        awake:  get('hf-awake'),
-        hrv:    get('hf-hrv'),
+        sleep:     get('hf-sleep'),
+        rem:       get('hf-rem'),
+        core:      get('hf-core'),
+        deep:      get('hf-deep'),
+        awake:     get('hf-awake'),
+        hrv:       get('hf-hrv'),
         restingHR: get('hf-rhr'),
-        vo2max: get('hf-vo2'),
+        vo2max:    get('hf-vo2'),
+        wellbeing: isNaN(wb) ? null : wb,
       };
       try {
         await this.#healthSvc.updateMetrics(data);
         this.#renderHealth(data);
+        this.#coach.setHealthData(data);
         this.showToast('Gesundheitsdaten gespeichert ✓');
       } catch (e) {
         this.showToast('Fehler beim Speichern');
@@ -98,6 +121,7 @@ class App {
     this.#dashboard.update();
 
     this.#loadHealth();
+    this.#trainingPlan.render();
 
     if (new URLSearchParams(window.location.search).has('code')) {
       this.showPage('strava');
@@ -123,6 +147,7 @@ class App {
     try {
       const d = await this.#healthSvc.fetchMetrics();
       this.#renderHealth(d);
+      this.#coach.setHealthData(d);
       // Pre-fill form with last values
       const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2' };
       Object.entries(fields).forEach(([k, id]) => {

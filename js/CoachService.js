@@ -29,8 +29,14 @@ DEIN JOB:
     this.#store = store;
   }
 
+  #healthData = null;
+
   setStravaActivities(activities) {
     this.#stravaActivities = activities || [];
+  }
+
+  setHealthData(data) {
+    this.#healthData = data;
   }
 
   #buildContext() {
@@ -68,6 +74,18 @@ DEIN JOB:
       ctx += `\nDIESE WOCHE: ${weekActs.length} Einheiten, ${totalH}h — Laufen ${runKm}km, Rad ${bikeKm}km, Schwimmen ${swimKm}km\n`;
     }
 
+    if (this.#healthData) {
+      const h = this.#healthData;
+      ctx += `\nGESUNDHEIT (heute morgen):`;
+      if (h.hrv)        ctx += ` HRV ${h.hrv}ms`;
+      if (h.restingHR)  ctx += ` · Ruhepuls ${h.restingHR}bpm`;
+      if (h.vo2max)     ctx += ` · VO2max ${h.vo2max}`;
+      if (h.sleep)      ctx += ` · Schlaf ${h.sleep}h`;
+      if (h.rem)        ctx += ` (REM ${h.rem}h`;
+      if (h.deep)       ctx += ` Tief ${h.deep}h)`;
+      if (h.wellbeing)  ctx += ` · Befinden ${h.wellbeing}/5`;
+      ctx += '\n';
+    }
     return ctx;
   }
 

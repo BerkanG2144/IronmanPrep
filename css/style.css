@@ -769,3 +769,63 @@ select {
   cursor: pointer; transition: opacity .2s;
 }
 .health-save-btn:hover { opacity: .85; }
+
+/* ── WELLBEING ── */
+.wellbeing-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 4px;
+}
+.wb-btn {
+  background: var(--surface2); border: 1px solid var(--border-bright);
+  border-radius: 10px; padding: 12px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 22px; cursor: pointer; transition: all .15s;
+  color: var(--text-secondary);
+}
+.wb-btn span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.wb-btn:hover { border-color: var(--text-secondary); }
+.wb-btn-active { border-color: var(--red) !important; background: rgba(232,53,74,.1) !important; color: var(--text) !important; }
+
+/* ── AI TRAINING PLAN ── */
+.ai-plan-loading, .ai-plan-empty, .ai-plan-setup {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 32px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  margin-bottom: 24px; color: var(--text-secondary); font-size: 13px;
+}
+.ai-plan-setup-icon { font-size: 32px; }
+.ai-plan-btn {
+  background: var(--red); color: white; border: none;
+  border-radius: 10px; padding: 12px 28px;
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
+}
+.ai-plan-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.ai-plan-tag {
+  background: rgba(74,158,255,.12); border: 1px solid rgba(74,158,255,.3);
+  color: var(--blue); border-radius: 6px; padding: 3px 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+}
+.ai-plan-date { font-size: 11px; color: var(--text-dim); flex: 1; }
+.ai-plan-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;
+  margin-bottom: 24px;
+}
+.ai-day {
+  background: rgba(74,158,255,.04); border: 1px dashed rgba(74,158,255,.2);
+  border-radius: 12px; padding: 10px;
+  opacity: 0.85;
+}
+.ai-day-rest {
+  background: var(--surface); border-color: var(--border); opacity: 0.5;
+}
+.ai-day-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.05); padding-bottom: 6px; margin-bottom: 8px;
+}
+.ai-day-body { display: flex; flex-direction: column; gap: 6px; }
+.ai-day-details {
+  font-size: 10px; color: var(--text-dim); line-height: 1.5;
+  margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,.04);
+}

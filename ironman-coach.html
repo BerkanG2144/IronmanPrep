@@ -92,6 +92,9 @@
       </div>
       <div class="whiteboard-week" id="weekRow"></div>
 
+      <div class="section-title">KI Trainingsvorschlag</div>
+      <div id="aiPlanContainer"></div>
+
       <div class="section-title">Letzte Einheiten</div>
       <div class="activity-list" id="activityListMain">
         <div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.<br>Starte jetzt und tracke dein Training.</p></div>
@@ -290,6 +293,18 @@
           </div>
         </div>
 
+        <div class="health-form-section">
+          <div class="health-form-title">😊 Befinden</div>
+          <div class="wellbeing-grid" id="wellbeingBtns">
+            <button class="wb-btn" onclick="setWellbeing(1)">😴<span>Erschöpft</span></button>
+            <button class="wb-btn" onclick="setWellbeing(2)">😕<span>Müde</span></button>
+            <button class="wb-btn" onclick="setWellbeing(3)">😐<span>OK</span></button>
+            <button class="wb-btn" onclick="setWellbeing(4)">😊<span>Gut</span></button>
+            <button class="wb-btn" onclick="setWellbeing(5)">🔥<span>Top</span></button>
+          </div>
+          <input type="hidden" id="hf-wellbeing" value="" />
+        </div>
+
         <button class="health-save-btn" onclick="healthSave()">Speichern →</button>
       </div>
     </div>
@@ -319,6 +334,7 @@
 <script src="js/Dashboard.js"></script>
 <script src="js/ActivityLogger.js"></script>
 <script src="js/HealthService.js"></script>
+<script src="js/TrainingPlan.js"></script>
 <script src="js/StravaService.js"></script>
 <script src="js/StravaUI.js"></script>
 <script src="js/App.js"></script>
