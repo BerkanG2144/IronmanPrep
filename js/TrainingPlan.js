@@ -100,22 +100,18 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          }),
+        }
+      );
       const data = await res.json();
-      const text = data.content?.[0]?.text || '';
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Kein JSON gefunden');
       this.#plan = JSON.parse(jsonMatch[0]);
@@ -134,7 +130,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>Anthropic API Key eingeben für KI-Trainingsplan</p>
       <div class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="sk-ant-…" />
+        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
     </div>`;
