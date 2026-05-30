@@ -50,6 +50,12 @@
       <div class="phase-bar"><div class="phase-fill" id="progressBar"></div></div>
       <div class="phase-info"><span>W1</span><span>W25</span></div>
     </div>
+    <div class="sidebar-api-key">
+      <div class="label">OpenRouter API-Key</div>
+      <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..." autocomplete="off" />
+      <button onclick="(function(){const k=document.getElementById('apiKeyInput').value.trim();if(k){localStorage.setItem('openrouter_api_key',k);document.getElementById('apiKeyStatus').textContent='✓ Gespeichert';document.getElementById('apiKeyInput').value='';}})()">Speichern</button>
+      <div id="apiKeyStatus" style="font-size:11px;color:var(--text-secondary);margin-top:4px"></div>
+    </div>
   </aside>
 
   <!-- MAIN -->

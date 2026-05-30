@@ -107,6 +107,37 @@ body {
 .phase-fill { height: 100%; background: var(--red); border-radius: 2px; width: 4%; transition: width 1s ease; }
 .phase-info { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); }
 
+.sidebar-api-key {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-api-key .label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.sidebar-api-key input {
+  width: 100%;
+  background: var(--surface3);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 11px;
+  padding: 6px 8px;
+  outline: none;
+  margin-bottom: 6px;
+}
+.sidebar-api-key input:focus { border-color: var(--red); }
+.sidebar-api-key button {
+  width: 100%;
+  background: var(--red);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 0;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.sidebar-api-key button:hover { opacity: 0.85; }
+
 /* MAIN */
 .main { flex: 1; overflow-y: auto; overflow-x: hidden; }
 .main::-webkit-scrollbar { width: 4px; }

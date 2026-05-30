@@ -45,22 +45,42 @@ DEIN JOB:
     return ctx;
   }
 
+  #getApiKey() {
+    return localStorage.getItem('openrouter_api_key') || '';
+  }
+
   async call(userMsg) {
+    const apiKey = this.#getApiKey();
+    if (!apiKey) {
+      return 'Kein API-Key gesetzt. Bitte trag deinen OpenRouter-Key in der Sidebar ein.';
+    }
+
     this.#chatHistory.push({ role: 'user', content: userMsg });
     const msgs = this.#chatHistory.slice(-12);
+
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'Ironman Coach',
+        },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'anthropic/claude-sonnet-4-5',
           max_tokens: 1000,
-          system: this.#SYSTEM + this.#buildContext(),
-          messages: msgs,
+          messages: [
+            { role: 'system', content: this.#SYSTEM + this.#buildContext() },
+            ...msgs,
+          ],
         }),
       });
       const d = await r.json();
-      const reply = d.content?.find(b => b.type === 'text')?.text || 'Verbindungsfehler.';
+      if (d.error) {
+        return `Fehler: ${d.error.message}`;
+      }
+      const reply = d.choices?.[0]?.message?.content || 'Verbindungsfehler.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
     } catch {
