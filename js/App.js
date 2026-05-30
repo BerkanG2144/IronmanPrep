@@ -60,6 +60,29 @@ class App {
       document.getElementById('healthSetupBanner').style.display = 'none';
       this.#loadHealth();
     };
+    window.healthSave = async () => {
+      const get = id => {
+        const v = parseFloat(document.getElementById(id)?.value);
+        return isNaN(v) ? null : v;
+      };
+      const data = {
+        sleep:  get('hf-sleep'),
+        rem:    get('hf-rem'),
+        core:   get('hf-core'),
+        deep:   get('hf-deep'),
+        awake:  get('hf-awake'),
+        hrv:    get('hf-hrv'),
+        restingHR: get('hf-rhr'),
+        vo2max: get('hf-vo2'),
+      };
+      try {
+        await this.#healthSvc.updateMetrics(data);
+        this.#renderHealth(data);
+        this.showToast('Gesundheitsdaten gespeichert ✓');
+      } catch (e) {
+        this.showToast('Fehler beim Speichern');
+      }
+    };
     window.weekNav          = delta => {
       this.#weekOffset += delta;
       if (this.#weekOffset > 0) this.#weekOffset = 0;
@@ -93,28 +116,51 @@ class App {
 
   async #loadHealth() {
     if (!this.#healthSvc.isConfigured()) {
-      document.getElementById('healthSetupBanner')?.style && (document.getElementById('healthSetupBanner').style.display = 'block');
+      const b = document.getElementById('healthSetupBanner');
+      if (b) b.style.display = 'block';
       return;
     }
     try {
       const d = await this.#healthSvc.fetchMetrics();
-      const set = (id, val, unit = '') => {
+      this.#renderHealth(d);
+      // Pre-fill form with last values
+      const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2' };
+      Object.entries(fields).forEach(([k, id]) => {
         const el = document.getElementById(id);
-        if (el) el.textContent = val != null ? val + unit : '—';
-      };
-      set('hvHRV',    d.hrv,       '');
-      set('hvVO2',    d.vo2max,    '');
-      set('hvRHR',    d.restingHR, '');
-      if (d.sleep != null) {
-        const h = Math.floor(d.sleep), m = Math.round((d.sleep - h) * 60);
-        document.getElementById('hvSleep').textContent = `${h}:${String(m).padStart(2,'0')}`;
-      }
-      if (d.updated && d.updated !== 'nie') {
-        const dt = new Date(d.updated).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-        const sub = document.getElementById('healthUpdated');
-        if (sub) sub.textContent = `Zuletzt aktualisiert: ${dt}`;
-      }
+        if (el && d[k] != null) el.value = d[k];
+      });
     } catch (_) {}
+  }
+
+  #renderHealth(d) {
+    const set = (id, val, dec = 0) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const num = el.querySelector('.health-card-value') || el;
+      const unit = el.querySelector('.health-unit');
+      const unitText = unit ? unit.outerHTML : '';
+      if (val != null) num.innerHTML = (dec ? val.toFixed(dec) : val) + unitText;
+    };
+    const setEl = (id, val, dec = 0) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const unitEl = el.querySelector('.health-unit');
+      const unitHTML = unitEl ? unitEl.outerHTML : '';
+      el.innerHTML = val != null ? (dec ? Number(val).toFixed(dec) : val) + unitHTML : '—' + unitHTML;
+    };
+    setEl('hvHRV',   d.hrv,       0);
+    setEl('hvRHR',   d.restingHR, 0);
+    setEl('hvVO2',   d.vo2max,    1);
+    setEl('hvSleep', d.sleep,     1);
+    setEl('hvREM',   d.rem,       1);
+    setEl('hvCore',  d.core,      1);
+    setEl('hvDeep',  d.deep,      1);
+    setEl('hvAwake', d.awake,     0);
+    if (d.updated && d.updated !== 'nie') {
+      const dt = new Date(d.updated).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const sub = document.getElementById('healthUpdated');
+      if (sub) sub.textContent = `Zuletzt aktualisiert: ${dt}`;
+    }
   }
 }
 

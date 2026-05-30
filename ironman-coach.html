@@ -187,7 +187,7 @@
     <div id="page-health" class="page">
       <div class="page-header">
         <div class="page-title">Gesundheit</div>
-        <div class="page-subtitle" id="healthUpdated">Apple Watch · wird geladen…</div>
+        <div class="page-subtitle" id="healthUpdated">Wird geladen…</div>
       </div>
 
       <div id="healthSetupBanner" class="health-setup-banner" style="display:none">
@@ -198,54 +198,99 @@
         </div>
       </div>
 
+      <!-- OVERVIEW CARDS -->
+      <div class="section-title">Aktuell</div>
       <div class="health-grid">
-        <div class="health-card" id="hcHRV">
+        <div class="health-card">
           <div class="health-card-icon">❤️</div>
           <div class="health-card-label">HRV</div>
-          <div class="health-card-value" id="hvHRV">—</div>
-          <div class="health-card-sub">ms · letzte Nacht</div>
+          <div class="health-card-value" id="hvHRV">—<span class="health-unit">ms</span></div>
         </div>
-        <div class="health-card" id="hcVO2">
-          <div class="health-card-icon">🫁</div>
-          <div class="health-card-label">VO₂ Max</div>
-          <div class="health-card-value" id="hvVO2">—</div>
-          <div class="health-card-sub">ml/kg/min</div>
-        </div>
-        <div class="health-card" id="hcSleep">
-          <div class="health-card-icon">🌙</div>
-          <div class="health-card-label">Schlaf</div>
-          <div class="health-card-value" id="hvSleep">—</div>
-          <div class="health-card-sub" id="hvSleepSub">letzte Nacht</div>
-        </div>
-        <div class="health-card" id="hcRHR">
+        <div class="health-card">
           <div class="health-card-icon">⚡</div>
           <div class="health-card-label">Ruhepuls</div>
-          <div class="health-card-value" id="hvRHR">—</div>
-          <div class="health-card-sub">bpm</div>
+          <div class="health-card-value" id="hvRHR">—<span class="health-unit">bpm</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">🫁</div>
+          <div class="health-card-label">VO₂ Max</div>
+          <div class="health-card-value" id="hvVO2">—<span class="health-unit">ml/kg</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">🌙</div>
+          <div class="health-card-label">Schlaf gesamt</div>
+          <div class="health-card-value" id="hvSleep">—<span class="health-unit">h</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">🧠</div>
+          <div class="health-card-label">REM Schlaf</div>
+          <div class="health-card-value" id="hvREM">—<span class="health-unit">h</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">💙</div>
+          <div class="health-card-label">Kernschlaf</div>
+          <div class="health-card-value" id="hvCore">—<span class="health-unit">h</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">🌊</div>
+          <div class="health-card-label">Tiefschlaf</div>
+          <div class="health-card-value" id="hvDeep">—<span class="health-unit">h</span></div>
+        </div>
+        <div class="health-card">
+          <div class="health-card-icon">👁️</div>
+          <div class="health-card-label">Wachzeit</div>
+          <div class="health-card-value" id="hvAwake">—<span class="health-unit">min</span></div>
         </div>
       </div>
 
-      <div class="section-title">iPhone Kurzbefehl einrichten</div>
-      <div class="health-shortcut-card">
-        <p>Erstelle diesen Kurzbefehl auf deinem iPhone — er läuft jeden Morgen automatisch und schickt deine Daten hierher.</p>
-        <div class="shortcut-steps">
-          <div class="shortcut-step"><span class="step-num">1</span>Öffne die <strong>Kurzbefehle</strong> App → "+" → neuer Kurzbefehl</div>
-          <div class="shortcut-step"><span class="step-num">2</span>Füge hinzu: <strong>„Gesundheitsdaten abfragen"</strong> — jeweils für: HRV (letzter Wert), VO2max, Ruhepuls, Schlafdauer</div>
-          <div class="shortcut-step"><span class="step-num">3</span>Füge hinzu: <strong>„URL-Inhalt abrufen"</strong> mit diesen Einstellungen:
-            <div class="shortcut-code">URL: https://api.github.com/gists/136cd353a241c3ef98ced71a54ea8b28
-Methode: PATCH
-Header: Authorization → token DEIN_TOKEN
-Body (JSON):
-{
-  "files": {
-    "health.json": {
-      "content": "{\"hrv\": [HRV-Wert], \"vo2max\": [VO2-Wert], \"restingHR\": [Puls-Wert], \"sleep\": [Schlaf in h]}"
-    }
-  }
-}</div>
+      <!-- ENTRY FORM -->
+      <div class="section-title">Eintragen</div>
+      <div class="health-form">
+        <div class="health-form-section">
+          <div class="health-form-title">🌙 Schlaf letzte Nacht</div>
+          <div class="health-form-grid">
+            <div class="health-field">
+              <label>Gesamt (h)</label>
+              <input type="number" id="hf-sleep" step="0.1" placeholder="7.5" />
+            </div>
+            <div class="health-field">
+              <label>REM (h)</label>
+              <input type="number" id="hf-rem" step="0.1" placeholder="1.8" />
+            </div>
+            <div class="health-field">
+              <label>Kernschlaf (h)</label>
+              <input type="number" id="hf-core" step="0.1" placeholder="3.5" />
+            </div>
+            <div class="health-field">
+              <label>Tiefschlaf (h)</label>
+              <input type="number" id="hf-deep" step="0.1" placeholder="1.2" />
+            </div>
+            <div class="health-field">
+              <label>Wach (min)</label>
+              <input type="number" id="hf-awake" step="1" placeholder="12" />
+            </div>
           </div>
-          <div class="shortcut-step"><span class="step-num">4</span>Gehe zu <strong>Automation</strong> → "+" → Tageszeit → jeden Morgen 07:00 → diesen Kurzbefehl ausführen</div>
         </div>
+
+        <div class="health-form-section">
+          <div class="health-form-title">❤️ Körper</div>
+          <div class="health-form-grid">
+            <div class="health-field">
+              <label>HRV (ms)</label>
+              <input type="number" id="hf-hrv" step="1" placeholder="45" />
+            </div>
+            <div class="health-field">
+              <label>Ruhepuls (bpm)</label>
+              <input type="number" id="hf-rhr" step="1" placeholder="48" />
+            </div>
+            <div class="health-field">
+              <label>VO₂ Max</label>
+              <input type="number" id="hf-vo2" step="0.1" placeholder="52.3" />
+            </div>
+          </div>
+        </div>
+
+        <button class="health-save-btn" onclick="healthSave()">Speichern →</button>
       </div>
     </div>
 
