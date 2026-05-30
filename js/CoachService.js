@@ -98,16 +98,21 @@ DEIN JOB:
     const fullMsg = context + '\n\nNachricht von Berkan: ' + userMsg;
 
     try {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: fullMsg }] }] }),
-        }
-      );
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: fullMsg }],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      });
       const d = await r.json();
-      const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
+      const reply = d.choices?.[0]?.message?.content || 'Keine Antwort erhalten.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
     } catch {

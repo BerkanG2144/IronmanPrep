@@ -106,20 +106,23 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          }),
-        }
-      );
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+          temperature: 0.7,
+        }),
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!text) throw new Error('Leere Antwort von Gemini. HTTP Status: ' + res.status);
+      const text = data.choices?.[0]?.message?.content || '';
+      if (!text) throw new Error('Leere Antwort von Groq.');
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Kein JSON gefunden');
       this.#plan = JSON.parse(jsonMatch[0]);
@@ -149,7 +152,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
       <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key (AIza…)" value="${this.getApiKey() || ''}" />
+        <input id="aiApiKeyInput" type="password" placeholder="Groq API Key (gsk_…)" value="${this.getApiKey() || ''}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
