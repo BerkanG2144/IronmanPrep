@@ -51,7 +51,9 @@ class App {
       this.#weekOffset += delta;
       if (this.#weekOffset > 0) this.#weekOffset = 0;
       this.#dashboard.setWeekOffset(this.#weekOffset);
-      document.getElementById('weekNavNext').disabled = this.#weekOffset >= 0;
+      const nextBtn = document.getElementById('weekNavNext');
+      if (this.#weekOffset < 0) nextBtn.removeAttribute('disabled');
+      else nextBtn.setAttribute('disabled', '');
     };
   }
 
