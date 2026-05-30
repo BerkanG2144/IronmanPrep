@@ -12,7 +12,10 @@ class App {
     this.#dashboard = new Dashboard(this.#store);
     this.#coach     = new Coach(this.#store);
     this.#stravaSvc = new StravaService();
-    this.#stravaUI  = new StravaUI(this.#stravaSvc);
+    this.#stravaUI  = new StravaUI(this.#stravaSvc, acts => {
+      this.#dashboard.setStravaActivities(acts);
+      this.#coach.setStravaActivities(acts);
+    });
     this.#bindGlobals();
     this.#init();
   }

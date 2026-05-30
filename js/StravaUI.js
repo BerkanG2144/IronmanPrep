@@ -11,8 +11,11 @@ class StravaUI {
     Hike:        { icon: '🥾', label: 'Wandern',   badge: 'badge-run'  },
   };
 
-  constructor(stravaService) {
+  #onActivitiesLoaded = null;
+
+  constructor(stravaService, onActivitiesLoaded) {
     this.#svc = stravaService;
+    this.#onActivitiesLoaded = onActivitiesLoaded;
     this.#container = document.getElementById('page-strava');
   }
 
@@ -111,9 +114,10 @@ class StravaUI {
     this.#renderLoading('Lade Strava-Aktivitäten…');
     try {
       const [activities, athlete] = await Promise.all([
-        this.#svc.getActivities({ perPage: 20 }),
+        this.#svc.getActivities({ perPage: 100 }),
         Promise.resolve(this.#svc.getAthleteInfo()),
       ]);
+      if (this.#onActivitiesLoaded) this.#onActivitiesLoaded(activities);
       this.#container.innerHTML = this.#buildActivitiesHTML(activities, athlete);
     } catch (e) {
       this.#container.innerHTML = `<div class="strava-error-page">
