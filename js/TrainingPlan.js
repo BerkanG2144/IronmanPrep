@@ -113,7 +113,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'google/gemma-3-27b-it:free',
+          model: 'deepseek/deepseek-r1:free',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
           temperature: 0.7,
