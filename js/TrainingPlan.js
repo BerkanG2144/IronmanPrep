@@ -106,14 +106,14 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'meta-llama/llama-3.3-70b-instruct:free',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
           temperature: 0.7,
@@ -152,7 +152,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
       <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="Groq API Key (gsk_…)" value="${this.getApiKey() || ''}" />
+        <input id="aiApiKeyInput" type="password" placeholder="OpenRouter API Key (sk-or-…)" value="${this.getApiKey() || ''}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>

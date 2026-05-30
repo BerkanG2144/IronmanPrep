@@ -98,14 +98,14 @@ DEIN JOB:
     const fullMsg = context + '\n\nNachricht von Berkan: ' + userMsg;
 
     try {
-      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'meta-llama/llama-3.3-70b-instruct:free',
           messages: [{ role: 'user', content: fullMsg }],
           max_tokens: 1000,
           temperature: 0.7,
