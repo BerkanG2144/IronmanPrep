@@ -91,20 +91,23 @@ DEIN JOB:
 
   async call(userMsg) {
     this.#chatHistory.push({ role: 'user', content: userMsg });
-    const msgs = this.#chatHistory.slice(-12);
+    const apiKey = localStorage.getItem('ai_training_plan_api_key') || '';
+    if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern).';
+
+    const context = this.#SYSTEM + this.#buildContext();
+    const fullMsg = context + '\n\nNachricht von Berkan: ' + userMsg;
+
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: this.#SYSTEM + this.#buildContext(),
-          messages: msgs,
-        }),
-      });
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: fullMsg }] }] }),
+        }
+      );
       const d = await r.json();
-      const reply = d.content?.find(b => b.type === 'text')?.text || 'Verbindungsfehler.';
+      const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
     } catch {
