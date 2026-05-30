@@ -56,13 +56,23 @@ class App {
     window.stravaRefresh    = () => this.#stravaUI.render();
   }
 
-  #init() {
+  async #init() {
     document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
     setTimeout(() => { document.getElementById('progressBar').style.width = '4%'; }, 300);
     this.#dashboard.update();
+
     // Auto-open Strava page if returning from OAuth callback
     if (new URLSearchParams(window.location.search).has('code')) {
       this.showPage('strava');
+      return;
+    }
+
+    // Auto-load Strava activities into dashboard if connected
+    if (this.#stravaSvc.isConnected()) {
+      try {
+        const acts = await this.#stravaSvc.getActivities({ perPage: 30 });
+        this.#dashboard.setStravaActivities(acts);
+      } catch (_) {}
     }
   }
 }

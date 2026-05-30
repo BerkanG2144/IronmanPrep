@@ -1,8 +1,40 @@
 class Dashboard {
   #store;
+  #stravaActivities = [];
 
   constructor(store) {
     this.#store = store;
+  }
+
+  setStravaActivities(activities) {
+    this.#stravaActivities = activities || [];
+    this.update();
+  }
+
+  // Merge local + Strava activities into unified format for this week
+  #allActivities() {
+    const local = this.#store.getAll();
+
+    // Convert Strava activities to local format
+    const stravaConverted = this.#stravaActivities.map(a => {
+      const typeMap = { Run: 'run', Ride: 'bike', VirtualRide: 'bike', Swim: 'swim' };
+      return {
+        date: a.start_date_local?.split('T')[0] || '',
+        sport: typeMap[a.type] || 'run',
+        dur:   Math.round((a.moving_time || 0) / 60),
+        dist:  parseFloat(((a.distance || 0) / 1000).toFixed(2)),
+        hr:    a.average_heartrate ? Math.round(a.average_heartrate) : 0,
+        type:  'Strava',
+        notes: a.name || '',
+        _strava: true,
+      };
+    });
+
+    // Deduplicate: skip Strava entries that match a local entry on same date+sport
+    const localKeys = new Set(local.map(a => `${a.date}_${a.sport}`));
+    const filtered  = stravaConverted.filter(a => !localKeys.has(`${a.date}_${a.sport}`));
+
+    return [...local, ...filtered];
   }
 
   update() {
@@ -13,7 +45,7 @@ class Dashboard {
   }
 
   #updateStats() {
-    const activities = this.#store.getAll();
+    const activities = this.#allActivities();
     const now = new Date();
 
     const days = Math.max(0, Math.ceil((new Date('2025-11-01') - now) / 86400000));
@@ -44,7 +76,7 @@ class Dashboard {
   }
 
   #updateWeekRow() {
-    const activities = this.#store.getAll();
+    const activities = this.#allActivities();
     const dayMap = [6, 0, 1, 2, 3, 4, 5];
     const today  = dayMap[new Date().getDay()];
 
@@ -61,7 +93,7 @@ class Dashboard {
   }
 
   #updateActivityLists() {
-    const activities = this.#store.getAll();
+    const activities = this.#allActivities();
     const html = activities.length
       ? activities.slice().reverse().map(Dashboard.#activityHTML).join('')
       : '<div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.</p></div>';
@@ -86,7 +118,7 @@ class Dashboard {
   }
 
   #updateRings() {
-    const activities = this.#store.getAll();
+    const activities = this.#allActivities();
     const swimKm = activities.filter(a => a.sport === 'swim').reduce((s, a) => s + a.dist, 0);
     const bikeKm = activities.filter(a => a.sport === 'bike').reduce((s, a) => s + a.dist, 0);
     const runKm  = activities.filter(a => a.sport === 'run').reduce((s, a) => s + a.dist, 0);
