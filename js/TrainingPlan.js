@@ -137,9 +137,14 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
   }
 
   #emptyHTML() {
+    const hasKey = !!this.getApiKey();
     return `<div class="ai-plan-empty">
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
+      ${!hasKey ? `<div class="health-token-row" style="width:100%;max-width:400px">
+        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key (AIza…)" />
+        <button onclick="aiPlanSaveKey()">Speichern</button>
+      </div>` : ''}
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
     </div>`;
   }
