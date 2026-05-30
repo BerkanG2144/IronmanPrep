@@ -4,6 +4,7 @@ class TrainingPlan {
   #healthSvc;
   #plan = null;
   #loading = false;
+  #errorMsg = null;
   static #CACHE_KEY = 'ai_training_plan';
   static #API_KEY_KEY = 'anthropic_api_key';
 
@@ -31,6 +32,11 @@ class TrainingPlan {
     }
     if (this.#loading) {
       container.innerHTML = `<div class="ai-plan-loading"><div class="strava-spinner"></div><p>KI erstellt deinen Plan…</p></div>`;
+      return;
+    }
+    if (this.#errorMsg) {
+      container.innerHTML = this.#emptyHTML() + `<div class="strava-error" style="margin-top:10px">Fehler: ${this.#errorMsg}</div>`;
+      this.#errorMsg = null;
       return;
     }
     if (!this.#plan) {
@@ -111,14 +117,16 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
         }
       );
       const data = await res.json();
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!text) throw new Error('Leere Antwort von Gemini. HTTP Status: ' + res.status);
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Kein JSON gefunden');
       this.#plan = JSON.parse(jsonMatch[0]);
       this.#plan._generated = new Date().toISOString();
       localStorage.setItem(TrainingPlan.#CACHE_KEY, JSON.stringify(this.#plan));
     } catch (e) {
-      console.error(e);
+      this.#errorMsg = e.message || 'Unbekannter Fehler';
     }
 
     this.#loading = false;
