@@ -181,28 +181,32 @@ class StravaUI {
 
   #activityCard(a) {
     const sport = StravaUI.#SPORT_MAP[a.type] || { icon: '🏅', label: a.type, badge: 'badge-run' };
-    const dist  = a.distance ? (a.distance / 1000).toFixed(2) + ' km' : '';
+    const dist  = a.distance ? (a.distance / 1000).toFixed(2) : '';
     const dur   = a.moving_time ? this.#fmtTime(a.moving_time) : '';
     const pace  = a.type === 'Run' && a.distance && a.moving_time
-      ? this.#fmtPace(a.moving_time, a.distance) + ' /km'
-      : a.type === 'Ride' || a.type === 'VirtualRide'
-        ? (a.average_speed * 3.6).toFixed(1) + ' km/h'
+      ? this.#fmtPace(a.moving_time, a.distance)
+      : (a.type === 'Ride' || a.type === 'VirtualRide') && a.average_speed
+        ? (a.average_speed * 3.6).toFixed(1)
         : '';
-    const hr    = a.average_heartrate ? Math.round(a.average_heartrate) + ' bpm' : '';
-    const date  = new Date(a.start_date_local).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: '2-digit' });
+    const paceLabel = a.type === 'Run' ? '/km' : 'km/h';
+    const hr    = a.average_heartrate ? Math.round(a.average_heartrate) : null;
+    const date  = new Date(a.start_date_local).toLocaleDateString('de-DE', { weekday:'short', day: '2-digit', month: 'short' });
     const elev  = a.total_elevation_gain ? '+' + Math.round(a.total_elevation_gain) + 'm' : '';
+    const watt  = a.average_watts ? Math.round(a.average_watts) : null;
+    const idx   = JSON.stringify(a).replace(/"/g, '&quot;');
 
-    return `<div class="strava-act-row">
+    return `<div class="strava-act-row" onclick='stravaShowDetail(${JSON.stringify(a)})' style="cursor:pointer">
       <div class="activity-sport-badge ${sport.badge}">${sport.icon}</div>
       <div class="activity-info">
         <div class="a-name">${a.name}</div>
         <div class="a-meta">${date}${elev ? ' · ' + elev : ''}</div>
       </div>
       <div class="activity-metrics">
-        ${dist ? `<div class="a-metric"><div class="val">${dist.split(' ')[0]}</div><div class="lbl">km</div></div>` : ''}
+        ${dist ? `<div class="a-metric"><div class="val">${dist}</div><div class="lbl">km</div></div>` : ''}
         ${dur  ? `<div class="a-metric"><div class="val">${dur}</div><div class="lbl">Zeit</div></div>` : ''}
-        ${hr   ? `<div class="a-metric"><div class="val">${a.average_heartrate ? Math.round(a.average_heartrate) : '—'}</div><div class="lbl">bpm</div></div>` : ''}
-        ${pace ? `<div class="a-metric"><div class="val">${pace.split(' ')[0]}</div><div class="lbl">${a.type === 'Run' ? '/km' : 'km/h'}</div></div>` : ''}
+        ${hr   ? `<div class="a-metric"><div class="val">${hr}</div><div class="lbl">bpm</div></div>` : ''}
+        ${pace ? `<div class="a-metric"><div class="val">${pace}</div><div class="lbl">${paceLabel}</div></div>` : ''}
+        ${watt ? `<div class="a-metric"><div class="val">${watt}</div><div class="lbl">W</div></div>` : ''}
       </div>
     </div>`;
   }

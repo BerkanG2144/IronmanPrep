@@ -11,7 +11,7 @@ class App {
   #stravaActivities = [];
   #lastHealthData = null;
   #weekOffset = 0;
-  static #PAGES = ['overview', 'coach', 'health', 'strava', 'perf', 'trends'];
+  static #PAGES = ['overview', 'perf', 'health', 'trends', 'coach', 'strava'];
 
   constructor() {
     this.#store     = new Store();
@@ -181,6 +181,54 @@ class App {
       this.showToast('Notiz gespeichert ✓');
     };
     renderPhaseNote();
+    window.stravaShowDetail = a => {
+      const dlg = document.getElementById('stravaDetailDialog');
+      if (!dlg) return;
+      const sport = { Run:'🏃 Laufen', Ride:'🚴 Radfahren', VirtualRide:'🚴 Zwift', Swim:'🏊 Schwimmen', Walk:'🚶 Gehen' };
+      document.getElementById('sdTitle').textContent = a.name;
+      const date = new Date(a.start_date_local).toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+      document.getElementById('sdMeta').textContent = `${sport[a.type] || a.type} · ${date}`;
+
+      const fmt = (val, unit, label) => val != null ? `<div class="sd-metric"><div class="sd-val">${val}</div><div class="sd-lbl">${unit}</div><div class="sd-label">${label}</div></div>` : '';
+      const fmtTime = s => { const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60; return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`; };
+      const fmtPace = (t, d) => { const spm = t/d*1000; return `${Math.floor(spm/60)}:${String(Math.round(spm%60)).padStart(2,'0')}`; };
+
+      const dist  = a.distance ? (a.distance/1000).toFixed(2) : null;
+      const dur   = a.moving_time ? fmtTime(a.moving_time) : null;
+      const pace  = a.type === 'Run' && a.distance && a.moving_time ? fmtPace(a.moving_time, a.distance) : null;
+      const speed = (a.type === 'Ride' || a.type === 'VirtualRide') && a.average_speed ? (a.average_speed*3.6).toFixed(1) : null;
+      const hr    = a.average_heartrate ? Math.round(a.average_heartrate) : null;
+      const hrMax = a.max_heartrate ? Math.round(a.max_heartrate) : null;
+      const watt  = a.average_watts ? Math.round(a.average_watts) : null;
+      const wMax  = a.max_watts ? Math.round(a.max_watts) : null;
+      const elev  = a.total_elevation_gain ? '+' + Math.round(a.total_elevation_gain) : null;
+      const cal   = a.calories ? Math.round(a.calories) : null;
+      const suf   = a.suffer_score || null;
+      const kad   = a.average_cadence ? Math.round(a.average_cadence) : null;
+
+      document.getElementById('sdMetrics').innerHTML = [
+        fmt(dist,  'km',    'Distanz'),
+        fmt(dur,   '',      'Zeit'),
+        fmt(pace,  '/km',   'Pace'),
+        fmt(speed, 'km/h',  'Tempo'),
+        fmt(hr,    'bpm',   'Ø Puls'),
+        fmt(hrMax, 'bpm',   'Max Puls'),
+        fmt(watt,  'W',     'Ø Watt'),
+        fmt(wMax,  'W',     'Max Watt'),
+        fmt(kad,   'rpm',   'Kadenz'),
+        fmt(elev,  'm',     'Höhenmeter'),
+        fmt(cal,   'kcal',  'Kalorien'),
+        fmt(suf,   'pts',   'Suffer Score'),
+      ].filter(Boolean).join('');
+
+      // Map via static image if polyline available
+      const mapDiv = document.getElementById('sdMap');
+      mapDiv.innerHTML = a.map?.summary_polyline
+        ? `<a href="https://www.strava.com/activities/${a.id}" target="_blank" style="display:block;text-align:center;padding:12px 0;font-size:12px;color:var(--text-secondary);text-decoration:none">Auf Strava öffnen →</a>`
+        : `<a href="https://www.strava.com/activities/${a.id}" target="_blank" style="display:block;text-align:center;padding:14px 0;font-size:13px;color:#FC4C02;text-decoration:none;font-weight:600">Auf Strava öffnen →</a>`;
+
+      dlg.showModal();
+    };
     window.perfLabWeekNav   = d => { this.#perfLab.weekNav(d); };
     window.perfLabClearWeek = () => { this.#perfLab.clearWeek(); };
     window.perfOpenDialog   = (date, slot) => { this.#perfLab.openDialog(date, slot); };
