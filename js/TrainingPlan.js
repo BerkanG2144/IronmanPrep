@@ -7,7 +7,7 @@ class TrainingPlan {
   #errorMsg = null;
 
   static #CACHE_KEY = 'ai_training_plan';
-  static #MODEL     = 'gemini-1.5-flash';
+  static #MODEL     = 'gemini-1.5-flash-latest';
   static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(store, stravaSvc, healthSvc) {
