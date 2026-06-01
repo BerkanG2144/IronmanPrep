@@ -829,3 +829,10 @@ select {
   font-size: 10px; color: var(--text-dim); line-height: 1.5;
   margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,.04);
 }
+
+.perf-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.perf-stat { text-align: center; }
+.perf-stat-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.perf-stat-value { font-size: 18px; font-weight: 700; color: var(--text); }
+@media (max-width: 400px) { .perf-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.ai-day-double { border-left: 3px solid #F5A623; }

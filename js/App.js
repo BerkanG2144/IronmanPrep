@@ -111,6 +111,7 @@ class App {
         hrv:       get('hf-hrv'),
         restingHR: get('hf-rhr'),
         vo2max:    get('hf-vo2'),
+        ftp:       get('hf-ftp'),
         wellbeing: isNaN(wb) ? null : wb,
       };
       try {
@@ -123,6 +124,31 @@ class App {
       } catch (e) {
         this.showToast('Fehler beim Speichern');
       }
+    };
+    window.togglePerfEdit = () => {
+      const view = document.getElementById('perfView');
+      const edit = document.getElementById('perfEdit');
+      const btn  = document.getElementById('perfEditBtn');
+      if (edit.style.display === 'none') {
+        const p = JSON.parse(localStorage.getItem('perf_profile') || '{}');
+        ['ftp','hm','10k','swim','bike','hrmax'].forEach(k => {
+          const el = document.getElementById('pe-' + k);
+          if (el && p[k]) el.value = p[k];
+        });
+        edit.style.display = ''; view.style.display = 'none'; btn.textContent = '✕ Schließen';
+      } else {
+        edit.style.display = 'none'; view.style.display = ''; btn.textContent = '✏️ Bearbeiten';
+      }
+    };
+    window.savePerfProfile = () => {
+      const get = id => { const v = parseFloat(document.getElementById('pe-' + id)?.value); return isNaN(v) ? null : v; };
+      const p = { ftp: get('ftp'), hm: get('hm'), '10k': get('10k'), swim: get('swim'), bike: get('bike'), hrmax: get('hrmax') };
+      localStorage.setItem('perf_profile', JSON.stringify(p));
+      this.#renderPerfProfile(p);
+      document.getElementById('perfEdit').style.display = 'none';
+      document.getElementById('perfView').style.display = '';
+      document.getElementById('perfEditBtn').textContent = '✏️ Bearbeiten';
+      this.showToast('Leistungsprofil gespeichert ✓');
     };
     window.weekNav          = delta => {
       this.#weekOffset += delta;
@@ -137,6 +163,9 @@ class App {
   async #init() {
     setTimeout(() => { document.getElementById('progressBar').style.width = '4%'; }, 300);
     this.#dashboard.update();
+
+    const perfProfile = JSON.parse(localStorage.getItem('perf_profile') || '{}');
+    this.#renderPerfProfile(perfProfile);
 
     this.#loadHealth();
     this.#trainingPlan.render(); // show cached plan immediately
@@ -170,7 +199,7 @@ class App {
       this.#coach.setHealthData(d);
       this.#lastHealthData = d;
       // Pre-fill form with last values
-      const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2' };
+      const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2', ftp:'hf-ftp' };
       Object.entries(fields).forEach(([k, id]) => {
         const el = document.getElementById(id);
         if (el && d[k] != null) el.value = d[k];
@@ -197,6 +226,7 @@ class App {
     setEl('hvHRV',   d.hrv,       0);
     setEl('hvRHR',   d.restingHR, 0);
     setEl('hvVO2',   d.vo2max,    1);
+    setEl('hvFTP',   d.ftp,       0);
     setEl('hvSleep', d.sleep,     1);
     setEl('hvREM',   d.rem,       1);
     setEl('hvCore',  d.core,      1);
@@ -207,6 +237,19 @@ class App {
       const sub = document.getElementById('healthUpdated');
       if (sub) sub.textContent = `Zuletzt aktualisiert: ${dt}`;
     }
+  }
+
+  #renderPerfProfile(p) {
+    const fmt = (v, unit) => v != null ? `${v} ${unit}` : `— ${unit}`;
+    const fmtPace = v => v != null ? `${Math.floor(v)}:${String(Math.round((v % 1) * 60)).padStart(2,'0')}` : '—';
+    const fmtSwim = v => v != null ? `${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}` : '—';
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('pvFTP',   fmt(p.ftp, 'W'));
+    set('pvHM',    p.hm   ? `${Math.floor(p.hm)}:${String(Math.round((p.hm%1)*60)).padStart(2,'0')} h` : '—');
+    set('pv10k',   p['10k'] ? `${fmtPace(p['10k'])}/km` : '—');
+    set('pvSwim',  p.swim  ? `${fmtSwim(p.swim)}/100m` : '—');
+    set('pvBike',  fmt(p.bike, 'km/h'));
+    set('pvHRmax', fmt(p.hrmax, 'bpm'));
   }
 }
 

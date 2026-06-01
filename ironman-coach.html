@@ -92,6 +92,31 @@
       </div>
       <div class="whiteboard-week" id="weekRow"></div>
 
+      <div class="section-title">Leistungsprofil <button class="btn-strava-refresh" onclick="togglePerfEdit()" id="perfEditBtn">✏️ Bearbeiten</button></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body">
+          <div id="perfView" class="perf-stats-grid">
+            <div class="perf-stat"><div class="perf-stat-label">FTP Rad</div><div class="perf-stat-value" id="pvFTP">— W</div></div>
+            <div class="perf-stat"><div class="perf-stat-label">HM Bestzeit</div><div class="perf-stat-value" id="pvHM">— min</div></div>
+            <div class="perf-stat"><div class="perf-stat-label">10km Pace</div><div class="perf-stat-value" id="pv10k">— /km</div></div>
+            <div class="perf-stat"><div class="perf-stat-label">Schwimm-Pace</div><div class="perf-stat-value" id="pvSwim">— /100m</div></div>
+            <div class="perf-stat"><div class="perf-stat-label">Rad-Pace</div><div class="perf-stat-value" id="pvBike">— km/h</div></div>
+            <div class="perf-stat"><div class="perf-stat-label">HRmax</div><div class="perf-stat-value" id="pvHRmax">— bpm</div></div>
+          </div>
+          <div id="perfEdit" style="display:none">
+            <div class="health-form-grid" style="margin-bottom:12px">
+              <div class="health-field"><label>FTP Rad (W)</label><input type="number" id="pe-ftp" placeholder="220" /></div>
+              <div class="health-field"><label>HM Bestzeit (min)</label><input type="number" id="pe-hm" placeholder="105" step="0.5"/></div>
+              <div class="health-field"><label>10km Pace (min/km)</label><input type="number" id="pe-10k" placeholder="4.8" step="0.1"/></div>
+              <div class="health-field"><label>Schwimm-Pace (s/100m)</label><input type="number" id="pe-swim" placeholder="100" /></div>
+              <div class="health-field"><label>Rad-Pace (km/h)</label><input type="number" id="pe-bike" placeholder="32" step="0.5"/></div>
+              <div class="health-field"><label>HRmax (bpm)</label><input type="number" id="pe-hrmax" placeholder="185" /></div>
+            </div>
+            <button class="health-save-btn" style="margin-top:0" onclick="savePerfProfile()">Speichern →</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section-title">Vorgeschlagene Woche</div>
       <div id="aiPlanContainer"></div>
 
@@ -224,6 +249,11 @@
           <div class="health-card-value" id="hvVO2">—<span class="health-unit">ml/kg</span></div>
         </div>
         <div class="health-card">
+          <div class="health-card-icon">⚡</div>
+          <div class="health-card-label">FTP</div>
+          <div class="health-card-value" id="hvFTP">—<span class="health-unit">W</span></div>
+        </div>
+        <div class="health-card">
           <div class="health-card-icon">🌙</div>
           <div class="health-card-label">Schlaf gesamt</div>
           <div class="health-card-value" id="hvSleep">—<span class="health-unit">h</span></div>
@@ -293,6 +323,10 @@
             <div class="health-field">
               <label>VO₂ Max</label>
               <input type="number" id="hf-vo2" step="0.1" placeholder="52.3" />
+            </div>
+            <div class="health-field">
+              <label>FTP (Watt)</label>
+              <input type="number" id="hf-ftp" step="1" placeholder="220" />
             </div>
           </div>
         </div>
