@@ -105,10 +105,15 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const url = `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent?key=${apiKey}`;
+      const isOAuth = !apiKey.startsWith('AIza');
+      const url = isOAuth
+        ? `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent`
+        : `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent?key=${apiKey}`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (isOAuth) headers['Authorization'] = `Bearer ${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: { maxOutputTokens: 2000, temperature: 0.7 },

@@ -106,12 +106,17 @@ DEIN JOB:
     if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern). Den Key bekommst du kostenlos auf aistudio.google.com.';
 
     const context = this.#buildContext();
-    const url = `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent?key=${apiKey}`;
+    const isOAuth = !apiKey.startsWith('AIza');
+    const url = isOAuth
+      ? `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent`
+      : `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent?key=${apiKey}`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (isOAuth) headers['Authorization'] = `Bearer ${apiKey}`;
 
     try {
       const r = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: this.#SYSTEM }] },
           contents: [{ role: 'user', parts: [{ text: context + '\n\nNachricht von Berkan: ' + userMsg }] }],
