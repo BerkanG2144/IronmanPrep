@@ -120,6 +120,7 @@ class App {
         this.#renderHealth(data);
         this.#coach.setHealthData(data);
         this.#lastHealthData = data;
+        this.#renderReadiness(data, this.#stravaActivities);
         this.#trainingPlan.maybeGenerate(this.#stravaActivities, data);
         this.showToast('Gesundheitsdaten gespeichert ✓');
       } catch (e) {
@@ -184,6 +185,7 @@ class App {
         this.#dashboard.setStravaActivities(acts);
         this.#coach.setStravaActivities(acts);
         this.#trainingPlan.maybeGenerate(acts, this.#lastHealthData);
+        this.#renderReadiness(this.#lastHealthData, acts);
         this.#healthSvc.syncStrava(acts);
       } catch (_) {}
     }
@@ -200,6 +202,7 @@ class App {
       this.#renderHealth(d);
       this.#coach.setHealthData(d);
       this.#lastHealthData = d;
+      this.#renderReadiness(d, this.#stravaActivities);
       // Pre-fill form with last values
       const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2', ftp:'hf-ftp' };
       Object.entries(fields).forEach(([k, id]) => {
@@ -239,6 +242,80 @@ class App {
       const sub = document.getElementById('healthUpdated');
       if (sub) sub.textContent = `Zuletzt aktualisiert: ${dt}`;
     }
+  }
+
+  #calcReadiness(health, activities) {
+    if (!health) return null;
+    let score = 50;
+
+    // HRV (baseline ~55ms for trained athlete)
+    if (health.hrv != null) {
+      const diff = health.hrv - 55;
+      score += Math.max(-20, Math.min(20, diff * 0.7));
+    }
+    // Resting HR (baseline ~52bpm)
+    if (health.restingHR != null) {
+      const diff = 52 - health.restingHR;
+      score += Math.max(-15, Math.min(15, diff * 1.2));
+    }
+    // Sleep (optimal 7.5-8.5h)
+    if (health.sleep != null) {
+      if (health.sleep >= 7.5 && health.sleep <= 8.5) score += 10;
+      else if (health.sleep >= 6.5) score += 3;
+      else score -= 12;
+    }
+    // Deep sleep (optimal >1h)
+    if (health.deep != null) {
+      score += health.deep >= 1.2 ? 5 : health.deep >= 0.8 ? 0 : -5;
+    }
+    // Wellbeing (1-5)
+    if (health.wellbeing != null) {
+      score += (health.wellbeing - 3) * 8;
+    }
+    // Training load last 7 days (penalize if >10h)
+    if (activities?.length) {
+      const now = Date.now();
+      const weekLoad = activities
+        .filter(a => a.start_date_local && (now - new Date(a.start_date_local).getTime()) < 7*24*3600*1000)
+        .reduce((s, a) => s + (a.moving_time || 0), 0) / 3600;
+      if (weekLoad > 12) score -= 10;
+      else if (weekLoad > 9)  score -= 5;
+    }
+
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
+
+  #renderReadiness(health, activities) {
+    const score = this.#calcReadiness(health, activities);
+    const scoreEl = document.getElementById('readinessScore');
+    const msgEl   = document.getElementById('readinessMsg');
+    const arc     = document.getElementById('readinessArc');
+    const card    = document.getElementById('readinessCard');
+    if (!scoreEl) return;
+
+    if (score === null) {
+      scoreEl.textContent = '—';
+      msgEl.textContent = 'Health-Daten eingeben für Score';
+      return;
+    }
+
+    scoreEl.textContent = score;
+
+    let color, msg;
+    if (score >= 80) { color = '#3DBA7A'; msg = 'Top Form — intensive Einheit möglich'; }
+    else if (score >= 65) { color = '#4A9EFF'; msg = 'Gut erholt — normales Training'; }
+    else if (score >= 50) { color = '#F5A623'; msg = 'Mäßig — lieber Zone 2 heute'; }
+    else if (score >= 35) { color = '#F5A623'; msg = 'Müde — nur lockeres Training'; }
+    else { color = '#E8354A'; msg = 'Erschöpft — Ruhetag empfohlen'; }
+
+    scoreEl.style.color = color;
+    if (arc) {
+      const circ = 2 * Math.PI * 34;
+      arc.style.stroke = color;
+      arc.setAttribute('stroke-dasharray', `${(score / 100) * circ} ${circ}`);
+    }
+    if (card) card.style.borderColor = color + '40';
+    msgEl.textContent = msg;
   }
 
   #renderPerfProfile(p) {
