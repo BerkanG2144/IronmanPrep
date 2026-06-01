@@ -136,7 +136,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>Gemini API Key eingeben für KI-Trainingsplan (kostenlos auf <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>)</p>
       <div class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
+        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
     </div>`;
@@ -147,7 +147,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
       <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="AIza…" value="${CoachService.getApiKey()}" />
+        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" value="${CoachService.getApiKey()}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
@@ -171,7 +171,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
         <button class="btn-strava-refresh" onclick="aiPlanShowKeyInput()">🔑 Key</button>
       </div>
       <div id="aiKeyInputRow" style="display:none; margin-bottom:12px;" class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
+        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <div class="ai-plan-grid">
