@@ -4,9 +4,9 @@ class CoachService {
   #chatHistory = [];
   #healthData = null;
 
-  static #API_KEY   = 'openrouter_api_key';
-  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
-  static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
+  static #API_KEY   = 'gemini_api_key';
+  static #MODEL     = 'gemini-2.0-flash';
+  static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
 
@@ -45,6 +45,11 @@ DEIN JOB:
 
   static getApiKey()   { return localStorage.getItem(CoachService.#API_KEY) || ''; }
   static saveApiKey(k) { localStorage.setItem(CoachService.#API_KEY, k.trim()); }
+  static clearOldKey() {
+    if (localStorage.getItem('openrouter_api_key') && !localStorage.getItem('gemini_api_key')) {
+      localStorage.removeItem('openrouter_api_key');
+    }
+  }
 
   #buildContext() {
     let ctx = '';
@@ -98,27 +103,24 @@ DEIN JOB:
     this.#chatHistory.push({ role: 'user', content: userMsg });
 
     const apiKey = CoachService.getApiKey();
-    if (!apiKey) return 'Bitte zuerst den OpenRouter API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern).';
+    if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern). Den Key bekommst du kostenlos auf aistudio.google.com.';
 
-    const fullMsg = this.#SYSTEM + this.#buildContext() + '\n\nNachricht von Berkan: ' + userMsg;
+    const context = this.#buildContext();
+    const url = `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent?key=${apiKey}`;
 
     try {
-      const r = await fetch(CoachService.#API_URL, {
+      const r = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: CoachService.#MODEL,
-          messages: [{ role: 'user', content: fullMsg }],
-          max_tokens: 1000,
-          temperature: 0.7,
+          systemInstruction: { parts: [{ text: this.#SYSTEM }] },
+          contents: [{ role: 'user', parts: [{ text: context + '\n\nNachricht von Berkan: ' + userMsg }] }],
+          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
         }),
       });
       const d = await r.json();
       if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-      const reply = d.choices?.[0]?.message?.content || 'Keine Antwort erhalten.';
+      const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
     } catch (e) {

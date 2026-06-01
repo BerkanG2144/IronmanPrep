@@ -7,8 +7,8 @@ class TrainingPlan {
   #errorMsg = null;
 
   static #CACHE_KEY = 'ai_training_plan';
-  static #MODEL     = 'google/gemini-2.0-flash-exp:free';
-  static #API_URL   = 'https://openrouter.ai/api/v1/chat/completions';
+  static #MODEL     = 'gemini-2.0-flash';
+  static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   constructor(store, stravaSvc, healthSvc) {
     this.#store    = store;
@@ -105,22 +105,18 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const res = await fetch(TrainingPlan.#API_URL, {
+      const url = `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: TrainingPlan.#MODEL,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 2000,
-          temperature: 0.7,
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2000, temperature: 0.7 },
         }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      const text = data.choices?.[0]?.message?.content || '';
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!text) throw new Error('Leere Antwort erhalten.');
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Kein gültiges JSON erhalten.');
@@ -138,9 +134,9 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
   #setupHTML() {
     return `<div class="ai-plan-setup">
       <div class="ai-plan-setup-icon">🤖</div>
-      <p>OpenRouter API Key eingeben für KI-Trainingsplan</p>
+      <p>Gemini API Key eingeben für KI-Trainingsplan (kostenlos auf <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>)</p>
       <div class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" />
+        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
     </div>`;
@@ -151,7 +147,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
       <div class="ai-plan-setup-icon">🤖</div>
       <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
       <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" value="${CoachService.getApiKey()}" />
+        <input id="aiApiKeyInput" type="password" placeholder="AIza…" value="${CoachService.getApiKey()}" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
@@ -175,7 +171,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
         <button class="btn-strava-refresh" onclick="aiPlanShowKeyInput()">🔑 Key</button>
       </div>
       <div id="aiKeyInputRow" style="display:none; margin-bottom:12px;" class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="sk-or-…" />
+        <input id="aiApiKeyInput" type="password" placeholder="AIza…" />
         <button onclick="aiPlanSaveKey()">Speichern</button>
       </div>
       <div class="ai-plan-grid">
