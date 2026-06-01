@@ -161,11 +161,12 @@ class Dashboard {
   }
 
   #updateActivityLists() {
+    const el = document.getElementById('activityListMain');
+    if (!el) return;
     const activities = this.#store.getAll();
-    const html = activities.length
+    el.innerHTML = activities.length
       ? activities.slice().reverse().map(Dashboard.#activityHTML).join('')
       : '<div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.</p></div>';
-    document.getElementById('activityListMain').innerHTML = html;
   }
 
   static #activityHTML(a) {
