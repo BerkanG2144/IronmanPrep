@@ -92,9 +92,6 @@
       </div>
       <div class="whiteboard-week" id="weekRow"></div>
 
-      <div class="section-title">KI Trainingsvorschlag</div>
-      <div id="aiPlanContainer"></div>
-
       <div class="section-title">Letzte Einheiten</div>
       <div class="activity-list" id="activityListMain">
         <div class="empty"><div class="empty-icon">🏁</div><p>Noch keine Einheiten geloggt.<br>Starte jetzt und tracke dein Training.</p></div>
@@ -158,6 +155,14 @@
         <div class="coach-status-bar">
           <div class="status-dot"></div>
           <span>Online · kennt deinen Plan, deine Ziele, deine letzten Einheiten</span>
+        </div>
+      </div>
+
+      <div id="coachApiKeyBanner" class="health-setup-banner" style="display:none">
+        <p>Gemini API Key eingeben (kostenlos auf <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent)">aistudio.google.com</a>):</p>
+        <div class="health-token-row">
+          <input id="coachApiKeyInput" type="password" placeholder="Gemini API Key…" />
+          <button onclick="coachSaveApiKey()">Speichern</button>
         </div>
       </div>
 
@@ -338,6 +343,13 @@
 <script src="js/StravaService.js"></script>
 <script src="js/StravaUI.js"></script>
 <script src="js/App.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!CoachService.getApiKey()) {
+      document.getElementById('coachApiKeyBanner').style.display = '';
+    }
+  });
+</script>
 
 </body>
 </html>

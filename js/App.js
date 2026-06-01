@@ -68,7 +68,15 @@ class App {
       const row = document.getElementById('aiKeyInputRow');
       if (row) row.style.display = 'none';
       this.#trainingPlan.render();
-      this.showToast('OpenRouter API Key gespeichert ✓');
+      this.showToast('Gemini API Key gespeichert ✓');
+    };
+    window.showToast = msg => this.showToast(msg);
+    window.coachSaveApiKey = () => {
+      const val = document.getElementById('coachApiKeyInput')?.value.trim();
+      if (!val) return;
+      CoachService.saveApiKey(val);
+      document.getElementById('coachApiKeyBanner').style.display = 'none';
+      this.showToast('Gemini API Key gespeichert ✓');
     };
     window.setWellbeing = v => {
       document.getElementById('hf-wellbeing').value = v;
