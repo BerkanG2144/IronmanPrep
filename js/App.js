@@ -106,12 +106,11 @@ class App {
         return isNaN(v) ? null : v;
       };
       const wb = parseInt(document.getElementById('hf-wellbeing')?.value);
-      const toH = id => { const v = get(id); return v != null ? +(v / 60).toFixed(2) : null; };
       const data = {
-        sleep:     toH('hf-sleep'),
-        rem:       toH('hf-rem'),
-        core:      toH('hf-core'),
-        deep:      toH('hf-deep'),
+        sleep:     get('hf-sleep'),
+        rem:       get('hf-rem'),
+        core:      get('hf-core'),
+        deep:      get('hf-deep'),
         awake:     get('hf-awake'),
         hrv:       get('hf-hrv'),
         restingHR: get('hf-rhr'),
@@ -215,11 +214,10 @@ class App {
       this.#lastHealthData = d;
       this.#renderReadiness(d, this.#stravaActivities);
       // Pre-fill form with last values
-      const hoursFields = new Set(['sleep','rem','core','deep']);
       const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2', ftp:'hf-ftp' };
       Object.entries(fields).forEach(([k, id]) => {
         const el = document.getElementById(id);
-        if (el && d[k] != null) el.value = hoursFields.has(k) ? Math.round(d[k] * 60) : d[k];
+        if (el && d[k] != null) el.value = d[k];
       });
     } catch (_) {}
   }
