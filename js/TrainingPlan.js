@@ -6,12 +6,13 @@ class TrainingPlan {
   #loading = false;
   #errorMsg = null;
 
-  static #CACHE_KEY = 'ai_training_plan';
-  static #MODEL     = 'llama-3.3-70b-versatile';
-  static #API_URL   = 'https://api.groq.com/openai/v1/chat/completions';
+  static #CACHE_KEY  = 'ai_training_plan';
+  static #FINGER_KEY = 'ai_plan_fingerprint';
+  static #MODEL      = 'llama-3.3-70b-versatile';
+  static #API_URL    = 'https://api.groq.com/openai/v1/chat/completions';
 
   constructor(store, stravaSvc, healthSvc) {
-    this.#store    = store;
+    this.#store     = store;
     this.#stravaSvc = stravaSvc;
     this.#healthSvc = healthSvc;
     const cached = localStorage.getItem(TrainingPlan.#CACHE_KEY);
@@ -22,84 +23,101 @@ class TrainingPlan {
 
   isConfigured() { return !!CoachService.getApiKey(); }
 
+  // Returns true if data changed enough to warrant a new plan
+  #fingerprintChanged(activities, healthData) {
+    const actSig  = (activities || []).slice(0, 5).map(a => a.id || a.start_date_local).join(',');
+    const hlthSig = healthData ? `${healthData.hrv}|${healthData.sleep}|${healthData.wellbeing}|${healthData.updated || ''}` : '';
+    const today   = new Date().toISOString().slice(0, 10);
+    const newFP   = `${today}::${actSig}::${hlthSig}`;
+    const oldFP   = localStorage.getItem(TrainingPlan.#FINGER_KEY) || '';
+    return newFP !== oldFP ? newFP : null;
+  }
+
+  #saveFingerprint(fp) {
+    localStorage.setItem(TrainingPlan.#FINGER_KEY, fp);
+  }
+
   render() {
     const container = document.getElementById('aiPlanContainer');
     if (!container) return;
-
-    if (!this.isConfigured()) {
-      container.innerHTML = this.#setupHTML();
-      return;
-    }
     if (this.#loading) {
-      container.innerHTML = `<div class="ai-plan-loading"><div class="strava-spinner"></div><p>KI erstellt deinen Plan…</p></div>`;
+      container.innerHTML = `<div class="ai-plan-loading"><div class="strava-spinner"></div><p>KI analysiert dein Training…</p></div>`;
       return;
     }
     if (this.#errorMsg) {
-      container.innerHTML = this.#emptyHTML() + `<div class="strava-error" style="margin-top:10px">Fehler: ${this.#errorMsg}</div>`;
+      const err = this.#errorMsg;
       this.#errorMsg = null;
+      container.innerHTML = `<div class="strava-error">Fehler: ${err} <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Retry</button></div>`;
       return;
     }
     if (!this.#plan) {
-      container.innerHTML = this.#emptyHTML();
+      container.innerHTML = `<div class="ai-plan-empty"><div class="ai-plan-setup-icon">🤖</div><p>Plan wird generiert…</p></div>`;
       return;
     }
     container.innerHTML = this.#planHTML();
   }
 
-  async generate(stravaActivities, healthData) {
+  // Called from outside — checks fingerprint, regenerates if needed
+  async maybeGenerate(activities, healthData) {
+    if (!this.isConfigured()) { this.render(); return; }
+    const newFP = this.#fingerprintChanged(activities, healthData);
+    if (!newFP && this.#plan) { this.render(); return; }
+    await this.generate(activities, healthData);
+    if (newFP) this.#saveFingerprint(newFP);
+  }
+
+  async generate(activities, healthData) {
     if (this.#loading) return;
     this.#loading = true;
     this.render();
 
-    const apiKey  = CoachService.getApiKey();
-    const now     = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const apiKey   = CoachService.getApiKey();
+    const now      = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
     const dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     const todayName = dayNames[now.getDay()];
 
-    const recentActs = (stravaActivities || []).slice(0, 20).map(a => {
-      const dist = a.distance ? ` ${(a.distance/1000).toFixed(1)}km` : '';
+    const recentActs = (activities || []).slice(0, 20).map(a => {
+      const dist = a.distance    ? ` ${(a.distance/1000).toFixed(1)}km` : '';
       const dur  = a.moving_time ? ` ${Math.round(a.moving_time/60)}min` : '';
       const hr   = a.average_heartrate ? ` ØHR ${Math.round(a.average_heartrate)}bpm` : '';
-      const watt = a.average_watts ? ` ${Math.round(a.average_watts)}W` : '';
+      const watt = a.average_watts     ? ` ${Math.round(a.average_watts)}W` : '';
       return `- ${a.start_date_local?.split('T')[0]} ${a.type}: ${a.name}${dist}${dur}${hr}${watt}`;
     }).join('\n');
 
-    const health = healthData ? `
-HRV: ${healthData.hrv || '?'} ms
-Ruhepuls: ${healthData.restingHR || '?'} bpm
-VO2max: ${healthData.vo2max || '?'}
-Schlaf gesamt: ${healthData.sleep || '?'} h
-REM: ${healthData.rem || '?'} h
-Tiefschlaf: ${healthData.deep || '?'} h
-Befinden: ${healthData.wellbeing || '?'}/5` : 'Keine Health-Daten';
+    const health = healthData ? `HRV: ${healthData.hrv || '?'} ms | Ruhepuls: ${healthData.restingHR || '?'} bpm | VO2max: ${healthData.vo2max || '?'} | Schlaf: ${healthData.sleep || '?'} h (REM ${healthData.rem || '?'} h, Tief ${healthData.deep || '?'} h) | Befinden: ${healthData.wellbeing || '?'}/5`
+      : 'Keine Health-Daten verfügbar';
 
-    const prompt = `Du bist ein Triathlon-Coach. Erstelle einen Trainingsplan für die nächsten 7 Tage für Berkan.
+    const prompt = `Du bist ein erfahrener Triathlon-Coach.
 
-ATHLET: Berkan, Ironman 70.3 Antalya (1. Nov 2026), Ziel: Sub 5:30
+ATHLET: Berkan, Ironman 70.3 Antalya (1. November 2026), Ziel: Sub 5:30
 HEUTE: ${todayStr} (${todayName})
+PHASE: Base 1 — Fokus echte Zone 2, aerobe Basis aufbauen
 
-GESUNDHEIT HEUTE MORGEN:
+GESUNDHEITSDATEN (heute morgen):
 ${health}
 
-LETZTE AKTIVITÄTEN (Strava):
-${recentActs}
+LETZTE EINHEITEN AUF STRAVA (chronologisch, neueste zuerst):
+${recentActs || 'Keine Strava-Daten verfügbar'}
 
-AUFGABE: Erstelle einen 7-Tage-Plan ab morgen. Berücksichtige:
-- Erholungszustand (HRV, Schlaf, Befinden)
-- Bisherige Belastung dieser Woche
-- Polarisiertes Training (Zone 2 Basis + gezielte Intensität)
-- Ironman 70.3 Vorbereitung
+AUFGABE: Erstelle einen personalisierten 7-Tage-Trainingsplan ab morgen.
+Berücksichtige dabei:
+- Erholungszustand: HRV, Ruhepuls, Schlafqualität, Befinden
+- Tatsächlich absolvierte Einheiten (ob Berkan die letzten Vorschläge umgesetzt hat oder nicht)
+- Kumulierte Belastung der letzten 7 Tage
+- Polarisiertes Training: echte Zone 2 (HR 125-140) als Basis, max 1-2 intensive Einheiten/Woche
+- Ironman 70.3-spezifisch: Schwimmen, Radfahren, Laufen ausgewogen
+- Bei niedrigem Befinden (<3) oder niedriger HRV (<50ms): mehr Erholung einplanen
 
-Antworte NUR mit einem JSON-Array, kein Text davor/danach:
+Antworte NUR mit einem JSON-Array ohne Text davor oder danach:
 [
   {
     "day": "Montag",
-    "date": "2026-05-31",
+    "date": "YYYY-MM-DD",
     "type": "run|bike|swim|rest|brick",
     "title": "Zone 2 Lauf",
     "duration": "60 min",
-    "details": "HR 130-145 bpm, lockeres Tempo, Bauchatmung",
+    "details": "HR 125-140 bpm, lockeres Tempo, Nasenatmung",
     "intensity": "z2|z3|intervals|race|rest"
   }
 ]`;
@@ -115,7 +133,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
           model: TrainingPlan.#MODEL,
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 2000,
-          temperature: 0.7,
+          temperature: 0.6,
         }),
       });
       const data = await res.json();
@@ -135,29 +153,6 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
     this.render();
   }
 
-  #setupHTML() {
-    return `<div class="ai-plan-setup">
-      <div class="ai-plan-setup-icon">🤖</div>
-      <p>Gemini API Key eingeben für KI-Trainingsplan (kostenlos auf <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>)</p>
-      <div class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" />
-        <button onclick="aiPlanSaveKey()">Speichern</button>
-      </div>
-    </div>`;
-  }
-
-  #emptyHTML() {
-    return `<div class="ai-plan-empty">
-      <div class="ai-plan-setup-icon">🤖</div>
-      <p>KI analysiert dein Training und erstellt einen personalisierten Plan</p>
-      <div class="health-token-row" style="width:100%;max-width:420px">
-        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" value="${CoachService.getApiKey()}" />
-        <button onclick="aiPlanSaveKey()">Speichern</button>
-      </div>
-      <button class="ai-plan-btn" onclick="aiPlanGenerate()">Plan generieren →</button>
-    </div>`;
-  }
-
   #planHTML() {
     const days = Array.isArray(this.#plan) ? this.#plan : [];
     const TYPE_ICON  = { run: '🏃', bike: '🚴', swim: '🏊', rest: '😴', brick: '🔥' };
@@ -171,12 +166,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
     return `<div class="ai-plan-header">
         <span class="ai-plan-tag">🤖 KI Vorschlag</span>
         <span class="ai-plan-date">${gen}</span>
-        <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Neu</button>
-        <button class="btn-strava-refresh" onclick="aiPlanShowKeyInput()">🔑 Key</button>
-      </div>
-      <div id="aiKeyInputRow" style="display:none; margin-bottom:12px;" class="health-token-row">
-        <input id="aiApiKeyInput" type="password" placeholder="Gemini API Key…" />
-        <button onclick="aiPlanSaveKey()">Speichern</button>
+        <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Neu generieren</button>
       </div>
       <div class="ai-plan-grid">
         ${days.map(d => `

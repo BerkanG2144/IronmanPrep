@@ -7,6 +7,7 @@ class App {
   #healthSvc;
   #trainingPlan;
   #stravaActivities = [];
+  #lastHealthData = null;
   #weekOffset = 0;
   static #PAGES = ['overview', 'coach', 'health', 'strava'];
 
@@ -21,6 +22,7 @@ class App {
       this.#stravaActivities = acts;
       this.#dashboard.setStravaActivities(acts);
       this.#coach.setStravaActivities(acts);
+      this.#trainingPlan.maybeGenerate(acts, this.#lastHealthData);
     });
     this.#bindGlobals();
     this.#init();
@@ -84,9 +86,8 @@ class App {
         b.classList.toggle('wb-btn-active', i + 1 === v);
       });
     };
-    window.aiPlanGenerate   = async () => {
-      const health = await this.#healthSvc.fetchMetrics().catch(() => null);
-      await this.#trainingPlan.generate(this.#stravaActivities, health);
+    window.aiPlanGenerate = async () => {
+      await this.#trainingPlan.generate(this.#stravaActivities, this.#lastHealthData);
     };
     window.healthSaveToken  = () => {
       const t = document.getElementById('healthTokenInput')?.value;
@@ -116,6 +117,8 @@ class App {
         await this.#healthSvc.updateMetrics(data);
         this.#renderHealth(data);
         this.#coach.setHealthData(data);
+        this.#lastHealthData = data;
+        this.#trainingPlan.maybeGenerate(this.#stravaActivities, data);
         this.showToast('Gesundheitsdaten gespeichert ✓');
       } catch (e) {
         this.showToast('Fehler beim Speichern');
@@ -136,7 +139,7 @@ class App {
     this.#dashboard.update();
 
     this.#loadHealth();
-    this.#trainingPlan.render();
+    this.#trainingPlan.render(); // show cached plan immediately
 
     if (new URLSearchParams(window.location.search).has('code')) {
       this.showPage('strava');
@@ -147,8 +150,10 @@ class App {
       try {
         // Fetch enough activities to cover several weeks back
         const acts = await this.#stravaSvc.getActivities({ perPage: 100 });
+        this.#stravaActivities = acts;
         this.#dashboard.setStravaActivities(acts);
         this.#coach.setStravaActivities(acts);
+        this.#trainingPlan.maybeGenerate(acts, this.#lastHealthData);
       } catch (_) {}
     }
   }
@@ -163,6 +168,7 @@ class App {
       const d = await this.#healthSvc.fetchMetrics();
       this.#renderHealth(d);
       this.#coach.setHealthData(d);
+      this.#lastHealthData = d;
       // Pre-fill form with last values
       const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2' };
       Object.entries(fields).forEach(([k, id]) => {
