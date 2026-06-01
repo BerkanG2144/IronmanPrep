@@ -897,6 +897,10 @@ select {
 .counter-btn-plus { border-color: rgba(61,186,122,0.5); color: #3DBA7A; }
 .counter-value { font-family: var(--font-display); font-size: 42px; font-weight: 700; color: var(--text); min-width: 60px; }
 .counter-week { font-size: 12px; color: var(--text-secondary); }
+.counter-presets { display: flex; gap: 6px; justify-content: center; margin: 8px 0 4px; }
+.counter-preset { padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.counter-preset:hover { background: rgba(61,186,122,0.15); border-color: rgba(61,186,122,0.5); color: #3DBA7A; }
+.counter-preset:active { background: rgba(61,186,122,0.3); }
 
 /* Performance Lab */
 .perf-week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 20px; }
