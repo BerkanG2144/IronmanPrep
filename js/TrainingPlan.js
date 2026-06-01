@@ -7,8 +7,8 @@ class TrainingPlan {
   #errorMsg = null;
 
   static #CACHE_KEY = 'ai_training_plan';
-  static #MODEL     = 'gemini-1.5-flash-latest';
-  static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
+  static #MODEL     = 'llama-3.3-70b-versatile';
+  static #API_URL   = 'https://api.groq.com/openai/v1/chat/completions';
 
   constructor(store, stravaSvc, healthSvc) {
     this.#store    = store;
@@ -105,23 +105,22 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const isOAuth = apiKey.startsWith('ya29.');
-      const url = isOAuth
-        ? `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent`
-        : `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent?key=${apiKey}`;
-      const headers = { 'Content-Type': 'application/json' };
-      if (isOAuth) headers['Authorization'] = `Bearer ${apiKey}`;
-      const res = await fetch(url, {
+      const res = await fetch(TrainingPlan.#API_URL, {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2000, temperature: 0.7 },
+          model: TrainingPlan.#MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+          temperature: 0.7,
         }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = data.choices?.[0]?.message?.content || '';
       if (!text) throw new Error('Leere Antwort erhalten.');
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Kein gültiges JSON erhalten.');

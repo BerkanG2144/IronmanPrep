@@ -4,9 +4,9 @@ class CoachService {
   #chatHistory = [];
   #healthData = null;
 
-  static #API_KEY   = 'gemini_api_key';
-  static #MODEL     = 'gemini-1.5-flash-latest';
-  static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
+  static #API_KEY   = 'groq_api_key';
+  static #MODEL     = 'llama-3.3-70b-versatile';
+  static #API_URL   = 'https://api.groq.com/openai/v1/chat/completions';
 
   #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
 
@@ -103,29 +103,29 @@ DEIN JOB:
     this.#chatHistory.push({ role: 'user', content: userMsg });
 
     const apiKey = CoachService.getApiKey();
-    if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern). Den Key bekommst du kostenlos auf aistudio.google.com.';
+    if (!apiKey) return 'Bitte zuerst den Groq API Key im Coach-Bereich eingeben. Den Key bekommst du kostenlos auf console.groq.com.';
 
     const context = this.#buildContext();
-    const isOAuth = apiKey.startsWith('ya29.');
-    const url = isOAuth
-      ? `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent`
-      : `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent?key=${apiKey}`;
-    const headers = { 'Content-Type': 'application/json' };
-    if (isOAuth) headers['Authorization'] = `Bearer ${apiKey}`;
-
     try {
-      const r = await fetch(url, {
+      const r = await fetch(CoachService.#API_URL, {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: this.#SYSTEM }] },
-          contents: [{ role: 'user', parts: [{ text: context + '\n\nNachricht von Berkan: ' + userMsg }] }],
-          generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
+          model: CoachService.#MODEL,
+          messages: [
+            { role: 'system', content: this.#SYSTEM },
+            { role: 'user', content: context + '\n\nNachricht von Berkan: ' + userMsg },
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
         }),
       });
       const d = await r.json();
       if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-      const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
+      const reply = d.choices?.[0]?.message?.content || 'Keine Antwort erhalten.';
       this.#chatHistory.push({ role: 'assistant', content: reply });
       return reply;
     } catch (e) {
