@@ -5,7 +5,7 @@ class CoachService {
   #healthData = null;
 
   static #API_KEY   = 'gemini_api_key';
-  static #MODEL     = 'gemini-2.0-flash';
+  static #MODEL     = 'gemini-1.5-flash';
   static #API_URL   = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   #SYSTEM = `Du bist ein erfahrener Triathlon-Coach. Dein Athlet ist Berkan, ambitionierter Amateur-Triathlet, Ironman 70.3 (Antalya, 1. November 2026).
