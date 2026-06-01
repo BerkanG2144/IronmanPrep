@@ -44,6 +44,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         Strava
       </div>
+      <div class="nav-item" onclick="showPage('perf')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Performance
+      </div>
     </nav>
     <div class="sidebar-phase">
       <div class="label">Base 1 — Woche 1 / 25</div>
@@ -82,23 +86,6 @@
           <div class="stat-label">Tage bis Rennen</div>
           <div class="stat-value" id="statDays">—</div>
           <div class="stat-sub">1. November 2025</div>
-        </div>
-      </div>
-
-      <div class="readiness-card" id="readinessCard">
-        <div class="readiness-left">
-          <div class="readiness-label">Readiness Score</div>
-          <div class="readiness-score" id="readinessScore">—</div>
-          <div class="readiness-msg" id="readinessMsg">Health-Daten eingeben für Score</div>
-        </div>
-        <div class="readiness-right">
-          <svg class="readiness-ring" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
-            <circle id="readinessArc" cx="40" cy="40" r="34" fill="none" stroke="#3DBA7A"
-              stroke-width="8" stroke-linecap="round"
-              stroke-dasharray="0 214" transform="rotate(-90 40 40)"
-              style="transition: stroke-dasharray 1s ease, stroke 1s ease"/>
-          </svg>
         </div>
       </div>
 
@@ -302,20 +289,20 @@
           <div class="health-form-title">🌙 Schlaf letzte Nacht</div>
           <div class="health-form-grid">
             <div class="health-field">
-              <label>Gesamt (h)</label>
-              <input type="number" id="hf-sleep" step="0.1" placeholder="7.5" />
+              <label>Gesamt (min)</label>
+              <input type="number" id="hf-sleep" step="1" placeholder="450" />
             </div>
             <div class="health-field">
-              <label>REM (h)</label>
-              <input type="number" id="hf-rem" step="0.1" placeholder="1.8" />
+              <label>REM (min)</label>
+              <input type="number" id="hf-rem" step="1" placeholder="110" />
             </div>
             <div class="health-field">
-              <label>Kernschlaf (h)</label>
-              <input type="number" id="hf-core" step="0.1" placeholder="3.5" />
+              <label>Kernschlaf (min)</label>
+              <input type="number" id="hf-core" step="1" placeholder="210" />
             </div>
             <div class="health-field">
-              <label>Tiefschlaf (h)</label>
-              <input type="number" id="hf-deep" step="0.1" placeholder="1.2" />
+              <label>Tiefschlaf (min)</label>
+              <input type="number" id="hf-deep" step="1" placeholder="70" />
             </div>
             <div class="health-field">
               <label>Wach (min)</label>
@@ -362,6 +349,87 @@
       </div>
     </div>
 
+    <!-- PERFORMANCE LAB -->
+    <div id="page-perf" class="page">
+      <div class="page-header">
+        <div class="page-title">Performance Lab</div>
+        <div class="page-subtitle">Wochenplanung &amp; Krafttraining</div>
+      </div>
+
+      <!-- Wochenplan -->
+      <div class="section-title">
+        <button class="week-nav-btn" onclick="perfLabWeekNav(-1)">←</button>
+        KW <span id="perfLabWeekNum">—</span>
+        <button class="week-nav-btn" id="perfLabWeekNavNext" onclick="perfLabWeekNav(1)" disabled>→</button>
+        <button class="btn-strava-refresh" style="margin-left:auto" onclick="perfLabClearWeek()">✕ Woche leeren</button>
+      </div>
+      <div class="perf-week-grid" id="perfWeekGrid"></div>
+
+      <!-- Wochenbilanz Ringe -->
+      <div class="section-title">Wochenbilanz</div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body">
+          <div class="rings-row" id="perfRingsRow">
+            <div class="ring-item">
+              <svg width="72" height="72" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                <circle id="perfRingSwim" cx="40" cy="40" r="32" fill="none" stroke="#4A9EFF" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+              </svg>
+              <div class="ring-val" id="perfSwimVal">0</div>
+              <div class="ring-label">Swim km</div>
+            </div>
+            <div class="ring-item">
+              <svg width="72" height="72" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                <circle id="perfRingBike" cx="40" cy="40" r="32" fill="none" stroke="#3DBA7A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+              </svg>
+              <div class="ring-val" id="perfBikeVal">0</div>
+              <div class="ring-label">Bike km</div>
+            </div>
+            <div class="ring-item">
+              <svg width="72" height="72" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                <circle id="perfRingRun" cx="40" cy="40" r="32" fill="none" stroke="#E8354A" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+              </svg>
+              <div class="ring-val" id="perfRunVal">0</div>
+              <div class="ring-label">Run km</div>
+            </div>
+            <div class="ring-item">
+              <svg width="72" height="72" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#1C1C1C" stroke-width="8"/>
+                <circle id="perfRingVol" cx="40" cy="40" r="32" fill="none" stroke="#F5A623" stroke-width="8" stroke-dasharray="0 201" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+              </svg>
+              <div class="ring-val" id="perfVolVal">0h</div>
+              <div class="ring-label">Volumen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zähler -->
+      <div class="section-title">Krafttraining (diese Woche)</div>
+      <div class="counter-grid">
+        <div class="counter-card">
+          <div class="counter-label">Klimmzüge</div>
+          <div class="counter-controls">
+            <button class="counter-btn" onclick="perfCounter('pullups', -1)">−</button>
+            <div class="counter-value" id="perfPullups">0</div>
+            <button class="counter-btn counter-btn-plus" onclick="perfCounter('pullups', 1)">+</button>
+          </div>
+          <div class="counter-week">Gesamt diese Woche: <strong id="perfPullupsTotal">0</strong></div>
+        </div>
+        <div class="counter-card">
+          <div class="counter-label">Liegestütze</div>
+          <div class="counter-controls">
+            <button class="counter-btn" onclick="perfCounter('pushups', -1)">−</button>
+            <div class="counter-value" id="perfPushups">0</div>
+            <button class="counter-btn counter-btn-plus" onclick="perfCounter('pushups', 1)">+</button>
+          </div>
+          <div class="counter-week">Gesamt diese Woche: <strong id="perfPushupsTotal">0</strong></div>
+        </div>
+      </div>
+    </div>
+
     <!-- STRAVA -->
     <div id="page-strava" class="page">
       <div class="page-header">
@@ -378,6 +446,43 @@
   <span id="toastMsg">Einheit gespeichert</span>
 </div>
 
+<!-- Session add dialog -->
+<dialog id="perfSessionDialog" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;color:var(--text);width:min(360px,92vw);max-width:100%">
+  <form method="dialog">
+    <div style="font-weight:700;font-size:16px;margin-bottom:16px" id="perfDialogTitle">Einheit hinzufügen</div>
+    <input type="hidden" id="pdDate" />
+    <input type="hidden" id="pdSlot" />
+    <div class="health-form-grid">
+      <div class="health-field" style="grid-column:1/-1">
+        <label>Sportart</label>
+        <select id="pdType" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px;width:100%;font-size:14px">
+          <option value="swim">🏊 Schwimmen</option>
+          <option value="bike">🚴 Radfahren</option>
+          <option value="run">🏃 Laufen</option>
+          <option value="brick">🔥 Brick</option>
+          <option value="other">💪 Sonstiges</option>
+        </select>
+      </div>
+      <div class="health-field">
+        <label>Dauer (min)</label>
+        <input type="number" id="pdDuration" placeholder="60" min="1" />
+      </div>
+      <div class="health-field">
+        <label>Distanz (km)</label>
+        <input type="number" id="pdKm" placeholder="—" step="0.1" />
+      </div>
+      <div class="health-field" style="grid-column:1/-1">
+        <label>Notiz</label>
+        <input type="text" id="pdNote" placeholder="z.B. Zone 2 ERG, 200W" maxlength="80" />
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button type="submit" onclick="perfSaveSession()" style="flex:1;background:var(--accent,#3DBA7A);border:none;border-radius:10px;color:#fff;font-weight:700;padding:12px;cursor:pointer;font-size:15px">Speichern</button>
+      <button type="submit" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text-secondary);padding:12px 18px;cursor:pointer;font-size:15px">Abbrechen</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- JS: Reihenfolge wichtig — Abhängigkeiten zuerst -->
 <script src="js/constants.js"></script>
 <script src="js/Store.js"></script>
@@ -390,6 +495,7 @@
 <script src="js/TrainingPlan.js"></script>
 <script src="js/StravaService.js"></script>
 <script src="js/StravaUI.js"></script>
+<script src="js/PerformanceLab.js"></script>
 <script src="js/App.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {

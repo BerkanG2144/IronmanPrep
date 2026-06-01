@@ -872,3 +872,51 @@ select {
   line-height: 1.4;
 }
 .readiness-ring { width: 80px; height: 80px; }
+
+/* Interactive Week Plan */
+.week-plan-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 20px; }
+@media (max-width: 600px) { .week-plan-grid { grid-template-columns: repeat(4,1fr); } }
+.wplan-day { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; min-height: 110px; }
+.wplan-day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.wplan-day-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+.wplan-day-date  { font-size: 10px; color: var(--text-dim); }
+.wplan-session { background: var(--surface2); border-radius: 6px; padding: 4px 6px; font-size: 11px; color: var(--text); cursor: pointer; position: relative; }
+.wplan-session:hover { background: var(--surface3); }
+.wplan-session-tag { font-size: 9px; color: var(--text-secondary); display: block; }
+.wplan-add { font-size: 18px; color: var(--text-dim); text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; border: 1px dashed var(--border); margin-top: auto; }
+.wplan-add:hover { color: var(--text-secondary); border-color: var(--border-bright); }
+.wplan-today { border-color: rgba(74,158,255,0.4); }
+
+/* Strength Counters */
+.counter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.counter-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+.counter-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-secondary); margin-bottom: 10px; }
+.counter-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; }
+.counter-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.counter-btn:active { background: var(--surface3); }
+.counter-btn-plus { border-color: rgba(61,186,122,0.5); color: #3DBA7A; }
+.counter-value { font-family: var(--font-display); font-size: 42px; font-weight: 700; color: var(--text); min-width: 60px; }
+.counter-week { font-size: 12px; color: var(--text-secondary); }
+
+/* Performance Lab */
+.perf-week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 20px; }
+@media (max-width: 620px) { .perf-week-grid { grid-template-columns: repeat(4,1fr); } }
+@media (max-width: 400px) { .perf-week-grid { grid-template-columns: repeat(2,1fr); } }
+
+.plday { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; gap: 5px; min-height: 100px; }
+.plday-today { border-color: rgba(74,158,255,0.45); }
+.plday-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+.plday-name { font-size: 11px; font-weight: 700; color: var(--text); text-transform: uppercase; }
+.plday-date { font-size: 10px; color: var(--text-dim); }
+
+.plsession { background: var(--surface2); border-radius: 7px; padding: 5px 6px; cursor: pointer; position: relative; }
+.plsession:hover { background: var(--surface3); }
+.plsession-tag { font-size: 9px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 2px; }
+.plsession-icon { font-size: 14px; }
+.plsession-dur { font-size: 11px; color: var(--text); display: block; margin-top: 1px; }
+.plsession-note { font-size: 10px; color: var(--text-secondary); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.plsession-del { position: absolute; top: 4px; right: 4px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; padding: 0; line-height: 1; }
+.plsession-del:hover { color: var(--red); }
+
+.pladd { font-size: 11px; color: var(--text-dim); text-align: center; cursor: pointer; padding: 5px 4px; border-radius: 7px; border: 1px dashed var(--border); margin-top: auto; }
+.pladd:hover { color: var(--text-secondary); border-color: var(--border-bright); }

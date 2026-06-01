@@ -6,10 +6,11 @@ class App {
   #stravaUI;
   #healthSvc;
   #trainingPlan;
+  #perfLab;
   #stravaActivities = [];
   #lastHealthData = null;
   #weekOffset = 0;
-  static #PAGES = ['overview', 'coach', 'health', 'strava'];
+  static #PAGES = ['overview', 'coach', 'health', 'strava', 'perf'];
 
   constructor() {
     this.#store     = new Store();
@@ -17,6 +18,7 @@ class App {
     this.#coach     = new Coach(this.#store);
     this.#healthSvc   = new HealthService();
     this.#store.setHealthService(this.#healthSvc);
+    this.#perfLab = new PerformanceLab();
     this.#stravaSvc   = new StravaService();
     this.#trainingPlan = new TrainingPlan(this.#store, this.#stravaSvc, this.#healthSvc);
     this.#stravaUI    = new StravaUI(this.#stravaSvc, acts => {
@@ -36,6 +38,7 @@ class App {
     document.querySelectorAll('.nav-item')[App.#PAGES.indexOf(id)]?.classList.add('active');
     if (id === 'strava') this.#stravaUI.render();
     if (id === 'health') this.#loadHealth();
+    if (id === 'perf')   this.#perfLab.render();
   }
 
   showToast(msg) {
@@ -103,11 +106,12 @@ class App {
         return isNaN(v) ? null : v;
       };
       const wb = parseInt(document.getElementById('hf-wellbeing')?.value);
+      const toH = id => { const v = get(id); return v != null ? +(v / 60).toFixed(2) : null; };
       const data = {
-        sleep:     get('hf-sleep'),
-        rem:       get('hf-rem'),
-        core:      get('hf-core'),
-        deep:      get('hf-deep'),
+        sleep:     toH('hf-sleep'),
+        rem:       toH('hf-rem'),
+        core:      toH('hf-core'),
+        deep:      toH('hf-deep'),
         awake:     get('hf-awake'),
         hrv:       get('hf-hrv'),
         restingHR: get('hf-rhr'),
@@ -152,6 +156,13 @@ class App {
       document.getElementById('perfEditBtn').textContent = '✏️ Bearbeiten';
       this.showToast('Leistungsprofil gespeichert ✓');
     };
+    window.perfLabWeekNav   = d => { this.#perfLab.weekNav(d); };
+    window.perfLabClearWeek = () => { this.#perfLab.clearWeek(); };
+    window.perfOpenDialog   = (date, slot) => { this.#perfLab.openDialog(date, slot); };
+    window.perfEditSession  = (date, slot) => { this.#perfLab.editSession(date, slot); };
+    window.perfSaveSession  = () => { this.#perfLab.saveSession(); };
+    window.perfDeleteSession= (date, slot) => { this.#perfLab.deleteSession(date, slot); };
+    window.perfCounter      = (type, delta) => { this.#perfLab.counter(type, delta); };
     window.weekNav          = delta => {
       this.#weekOffset += delta;
       if (this.#weekOffset > 0) this.#weekOffset = 0;
@@ -204,10 +215,11 @@ class App {
       this.#lastHealthData = d;
       this.#renderReadiness(d, this.#stravaActivities);
       // Pre-fill form with last values
+      const hoursFields = new Set(['sleep','rem','core','deep']);
       const fields = { sleep:'hf-sleep', rem:'hf-rem', core:'hf-core', deep:'hf-deep', awake:'hf-awake', hrv:'hf-hrv', restingHR:'hf-rhr', vo2max:'hf-vo2', ftp:'hf-ftp' };
       Object.entries(fields).forEach(([k, id]) => {
         const el = document.getElementById(id);
-        if (el && d[k] != null) el.value = d[k];
+        if (el && d[k] != null) el.value = hoursFields.has(k) ? Math.round(d[k] * 60) : d[k];
       });
     } catch (_) {}
   }
