@@ -955,3 +955,11 @@ dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
   font-size: 15px;
   box-sizing: border-box;
 }
+
+/* Phase notes */
+.phase-seg { cursor: pointer; transition: opacity .15s; }
+.phase-seg:hover { opacity: .8; }
+.phase-selected { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
+.phase-note-header { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.phase-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px; font-size: 12px; font-family: var(--font-body); resize: vertical; line-height: 1.6; box-sizing: border-box; }
+.phase-textarea:focus { outline: none; border-color: var(--border-bright); }

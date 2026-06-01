@@ -158,6 +158,29 @@ class App {
       document.getElementById('perfEditBtn').textContent = '✏️ Bearbeiten';
       this.showToast('Leistungsprofil gespeichert ✓');
     };
+    // Periodization phase notes
+    const PHASES = { base1:'Base 1', base2:'Base 2', build:'Build', taper:'Taper', race:'Race Day' };
+    let activePhase = localStorage.getItem('active_phase') || 'base1';
+    const renderPhaseNote = () => {
+      const area = document.getElementById('phaseNoteArea');
+      if (!area) return;
+      const notes = JSON.parse(localStorage.getItem('phase_notes') || '{}');
+      const note = notes[activePhase] || '';
+      document.querySelectorAll('.phase-seg').forEach(el => el.classList.remove('phase-selected'));
+      document.getElementById('phaseSeg-' + activePhase)?.classList.add('phase-selected');
+      area.innerHTML = `
+        <div class="phase-note-header">${PHASES[activePhase]}</div>
+        <textarea class="phase-textarea" id="phaseTextarea" placeholder="Notizen, Ziele, Fokus für diese Phase…" rows="4">${note}</textarea>
+        <button class="btn-strava-refresh" style="margin-top:6px;width:100%;justify-content:center" onclick="phaseSaveNote()">Speichern</button>`;
+    };
+    window.phaseSelect = phase => { activePhase = phase; localStorage.setItem('active_phase', phase); renderPhaseNote(); };
+    window.phaseSaveNote = () => {
+      const notes = JSON.parse(localStorage.getItem('phase_notes') || '{}');
+      notes[activePhase] = document.getElementById('phaseTextarea')?.value || '';
+      localStorage.setItem('phase_notes', JSON.stringify(notes));
+      this.showToast('Notiz gespeichert ✓');
+    };
+    renderPhaseNote();
     window.perfLabWeekNav   = d => { this.#perfLab.weekNav(d); };
     window.perfLabClearWeek = () => { this.#perfLab.clearWeek(); };
     window.perfOpenDialog   = (date, slot) => { this.#perfLab.openDialog(date, slot); };
