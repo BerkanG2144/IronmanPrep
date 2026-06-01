@@ -924,3 +924,7 @@ select {
 /* Center dialog */
 dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; }
 dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+
+/* Trends */
+.trend-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+.trend-card-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }

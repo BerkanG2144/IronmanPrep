@@ -9,6 +9,8 @@ class PerformanceLab {
   static #TYPE_BADGE = { swim:'badge-swim', bike:'badge-bike', run:'badge-run', brick:'badge-run', other:'' };
   static #SLOT_LABEL = { am:'AM', pm:'PM' };
 
+  #localStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
   #sessions() { return JSON.parse(localStorage.getItem(PerformanceLab.#SESSIONS_KEY) || '{}'); }
   #saveSessions(d) { localStorage.setItem(PerformanceLab.#SESSIONS_KEY, JSON.stringify(d)); }
   #counters() { return JSON.parse(localStorage.getItem(PerformanceLab.#COUNTERS_KEY) || '{}'); }
@@ -30,7 +32,7 @@ class PerformanceLab {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      return d.toISOString().slice(0, 10);
+      return this.#localStr(d);
     });
   }
 
@@ -53,7 +55,7 @@ class PerformanceLab {
     if (!grid) return;
     const dates = this.#weekDates();
     const sessions = this.#sessions();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.#localStr(new Date());
 
     grid.innerHTML = dates.map((date, i) => {
       const daySessions = sessions[date] || {};

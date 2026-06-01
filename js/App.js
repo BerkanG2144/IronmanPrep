@@ -7,10 +7,11 @@ class App {
   #healthSvc;
   #trainingPlan;
   #perfLab;
+  #trends;
   #stravaActivities = [];
   #lastHealthData = null;
   #weekOffset = 0;
-  static #PAGES = ['overview', 'coach', 'health', 'strava', 'perf'];
+  static #PAGES = ['overview', 'coach', 'health', 'strava', 'perf', 'trends'];
 
   constructor() {
     this.#store     = new Store();
@@ -19,6 +20,7 @@ class App {
     this.#healthSvc   = new HealthService();
     this.#store.setHealthService(this.#healthSvc);
     this.#perfLab = new PerformanceLab();
+    this.#trends  = new Trends(this.#healthSvc);
     this.#stravaSvc   = new StravaService();
     this.#trainingPlan = new TrainingPlan(this.#store, this.#stravaSvc, this.#healthSvc);
     this.#stravaUI    = new StravaUI(this.#stravaSvc, acts => {
@@ -39,6 +41,7 @@ class App {
     if (id === 'strava') this.#stravaUI.render();
     if (id === 'health') this.#loadHealth();
     if (id === 'perf')   this.#perfLab.render();
+    if (id === 'trends') this.#trends.render();
   }
 
   showToast(msg) {
@@ -194,6 +197,7 @@ class App {
         this.#stravaActivities = acts;
         this.#dashboard.setStravaActivities(acts);
         this.#coach.setStravaActivities(acts);
+        this.#trends.setStravaActivities(acts);
         this.#trainingPlan.maybeGenerate(acts, this.#lastHealthData);
         this.#renderReadiness(this.#lastHealthData, acts);
         this.#healthSvc.syncStrava(acts);

@@ -48,6 +48,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
         Performance
       </div>
+      <div class="nav-item" onclick="showPage('trends')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Trends
+      </div>
     </nav>
     <div class="sidebar-phase">
       <div class="label">Base 1 — Woche 1 / 25</div>
@@ -430,6 +434,33 @@
       </div>
     </div>
 
+    <!-- TRENDS -->
+    <div id="page-trends" class="page">
+      <div class="page-header">
+        <div class="page-title">Trends</div>
+        <div class="page-subtitle">Entwicklung deiner Fitness-Metriken</div>
+      </div>
+
+      <div id="trendsNoData" class="empty" style="display:none">
+        <div class="empty-icon">📊</div>
+        <p>Noch zu wenig Daten. Trage täglich deine Health-Werte ein — nach ein paar Tagen siehst du hier deine Entwicklung.</p>
+      </div>
+
+      <div id="trendsCharts">
+        <div class="section-title">Erholung</div>
+        <div class="trend-card"><div class="trend-card-title">HRV (ms)</div><canvas id="chartHRV"></canvas></div>
+        <div class="trend-card"><div class="trend-card-title">Ruhepuls (bpm)</div><canvas id="chartRHR"></canvas></div>
+
+        <div class="section-title">Schlaf</div>
+        <div class="trend-card"><div class="trend-card-title">Schlafdauer (h)</div><canvas id="chartSleep"></canvas></div>
+        <div class="trend-card"><div class="trend-card-title">Tiefschlaf (h)</div><canvas id="chartDeep"></canvas></div>
+
+        <div class="section-title">Befinden &amp; Form</div>
+        <div class="trend-card"><div class="trend-card-title">Befinden (1–5)</div><canvas id="chartWellbeing"></canvas></div>
+        <div class="trend-card"><div class="trend-card-title">Wöchentliches Trainingsvolumen (h)</div><canvas id="chartVolume"></canvas></div>
+      </div>
+    </div>
+
     <!-- STRAVA -->
     <div id="page-strava" class="page">
       <div class="page-header">
@@ -483,6 +514,7 @@
   </form>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- JS: Reihenfolge wichtig — Abhängigkeiten zuerst -->
 <script src="js/constants.js"></script>
 <script src="js/Store.js"></script>
@@ -496,6 +528,7 @@
 <script src="js/StravaService.js"></script>
 <script src="js/StravaUI.js"></script>
 <script src="js/PerformanceLab.js"></script>
+<script src="js/Trends.js"></script>
 <script src="js/App.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
