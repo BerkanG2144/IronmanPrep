@@ -76,6 +76,7 @@ class TrainingPlan {
     const todayStr = now.toISOString().slice(0, 10);
     const dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     const todayName = dayNames[now.getDay()];
+    const perf = JSON.parse(localStorage.getItem('perf_profile') || '{}');
 
     const recentActs = (activities || []).slice(0, 20).map(a => {
       const dist = a.distance    ? ` ${(a.distance/1000).toFixed(1)}km` : '';
@@ -85,40 +86,70 @@ class TrainingPlan {
       return `- ${a.start_date_local?.split('T')[0]} ${a.type}: ${a.name}${dist}${dur}${hr}${watt}`;
     }).join('\n');
 
-    const health = healthData ? `HRV: ${healthData.hrv || '?'} ms | Ruhepuls: ${healthData.restingHR || '?'} bpm | VO2max: ${healthData.vo2max || '?'} | Schlaf: ${healthData.sleep || '?'} h (REM ${healthData.rem || '?'} h, Tief ${healthData.deep || '?'} h) | Befinden: ${healthData.wellbeing || '?'}/5`
-      : 'Keine Health-Daten verfügbar';
+    const health = healthData
+      ? `HRV: ${healthData.hrv||'?'}ms | Ruhepuls: ${healthData.restingHR||'?'}bpm | VO2max: ${healthData.vo2max||'?'} | Schlaf: ${healthData.sleep||'?'}h (REM ${healthData.rem||'?'}h, Tief ${healthData.deep||'?'}h) | Befinden: ${healthData.wellbeing||'?'}/5`
+      : 'Keine Health-Daten';
 
-    const prompt = `Du bist ein erfahrener Triathlon-Coach.
+    const perfStr = [
+      perf.ftp   ? `FTP: ${perf.ftp}W (Zone 2: ${Math.round(perf.ftp*0.56)}-${Math.round(perf.ftp*0.75)}W, Zone 3: ${Math.round(perf.ftp*0.76)}-${Math.round(perf.ftp*0.90)}W)` : 'FTP: unbekannt',
+      perf.hrmax ? `HRmax: ${perf.hrmax}bpm (Zone 2: ${Math.round(perf.hrmax*0.65)}-${Math.round(perf.hrmax*0.78)}bpm)` : '',
+      perf.hm    ? `HM Bestzeit: ${Math.floor(perf.hm)}:${String(Math.round((perf.hm%1)*60)).padStart(2,'0')} h` : '',
+      perf['10k']? `10km Pace: ${perf['10k']} min/km` : '',
+      perf.swim  ? `Schwimm-Pace: ${Math.floor(perf.swim/60)}:${String(perf.swim%60).padStart(2,'0')}/100m` : '',
+      perf.bike  ? `Rad-Durchschnitt: ${perf.bike} km/h` : '',
+    ].filter(Boolean).join('\n');
 
-ATHLET: Berkan, Ironman 70.3 Antalya (1. November 2026), Ziel: Sub 5:30
+    const prompt = `Du bist ein professioneller Triathlon-Coach, der Berkan für den Ironman 70.3 Antalya (1. November 2026) vorbereitet.
+
+ATHLET: Berkan
+RENNEN: Ironman 70.3 Antalya, 1. November 2026
+ZIEL: Sub 5:30 (Schwimmen 1,9km + Rad 90km + Laufen 21,1km)
 HEUTE: ${todayStr} (${todayName})
-PHASE: Base 1 — Fokus echte Zone 2, aerobe Basis aufbauen
+PHASE: Base 1 — aerobe Basis, polarisiertes Training
 
-GESUNDHEITSDATEN (heute morgen):
+LEISTUNGSPROFIL:
+${perfStr || 'Noch keine Leistungsdaten eingegeben'}
+
+GESUNDHEIT HEUTE MORGEN:
 ${health}
 
-LETZTE EINHEITEN AUF STRAVA (chronologisch, neueste zuerst):
-${recentActs || 'Keine Strava-Daten verfügbar'}
+STRAVA — LETZTE EINHEITEN (neueste zuerst):
+${recentActs || 'Keine Strava-Daten'}
 
-AUFGABE: Erstelle einen personalisierten 7-Tage-Trainingsplan ab morgen.
-Berücksichtige dabei:
-- Erholungszustand: HRV, Ruhepuls, Schlafqualität, Befinden
-- Tatsächlich absolvierte Einheiten (ob Berkan die letzten Vorschläge umgesetzt hat oder nicht)
-- Kumulierte Belastung der letzten 7 Tage
-- Polarisiertes Training: echte Zone 2 (HR 125-140) als Basis, max 1-2 intensive Einheiten/Woche
-- Ironman 70.3-spezifisch: Schwimmen, Radfahren, Laufen ausgewogen
-- Bei niedrigem Befinden (<3) oder niedriger HRV (<50ms): mehr Erholung einplanen
+TRAININGSPHILOSOPHIE:
+- 10-12 Einheiten/Woche, Doppeleinheiten erlaubt (AM + PM)
+- 80% Zone 2 / 20% Intensität (polarisiertes Training)
+- Wöchentliches Volumen: Schwimmen 15-20km, Rad 150-250km, Laufen 40-60km
+- Doppeleinheiten typisch: morgens Schwimmen + abends Laufen/Rad
+- Nur echte Ruhetage bei: Befinden ≤2 ODER HRV deutlich unter Baseline
+- Jede Einheit mit konkreten km/Distanz und Zielwatt oder -HR angeben
 
-Antworte NUR mit einem JSON-Array ohne Text davor oder danach:
+AUFGABE: Erstelle einen 7-Tage-Plan ab morgen mit 10-12 Einheiten.
+Bei Doppeleinheiten: zwei separate JSON-Objekte für denselben Tag (gleiches Datum, session "AM" und "PM").
+
+Antworte NUR mit einem JSON-Array, kein Text davor oder danach:
 [
   {
     "day": "Montag",
     "date": "YYYY-MM-DD",
-    "type": "run|bike|swim|rest|brick",
-    "title": "Zone 2 Lauf",
+    "session": "AM",
+    "type": "swim",
+    "title": "Schwimmen Technik + Z2",
     "duration": "60 min",
+    "distance": "3.0 km",
+    "details": "1km Einschwimmen, 8x200m Z2 Pace (2:00/100m), 500m ausschwimmen",
+    "intensity": "z2"
+  },
+  {
+    "day": "Montag",
+    "date": "YYYY-MM-DD",
+    "session": "PM",
+    "type": "run",
+    "title": "Z2 Lauf",
+    "duration": "45 min",
+    "distance": "8 km",
     "details": "HR 125-140 bpm, lockeres Tempo, Nasenatmung",
-    "intensity": "z2|z3|intervals|race|rest"
+    "intensity": "z2"
   }
 ]`;
 
@@ -132,8 +163,8 @@ Antworte NUR mit einem JSON-Array ohne Text davor oder danach:
         body: JSON.stringify({
           model: TrainingPlan.#MODEL,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 2000,
-          temperature: 0.6,
+          max_tokens: 3000,
+          temperature: 0.5,
         }),
       });
       const data = await res.json();
@@ -154,40 +185,57 @@ Antworte NUR mit einem JSON-Array ohne Text davor oder danach:
   }
 
   #planHTML() {
-    const days = Array.isArray(this.#plan) ? this.#plan : [];
+    const allSessions = Array.isArray(this.#plan) ? this.#plan : [];
     const TYPE_ICON  = { run: '🏃', bike: '🚴', swim: '🏊', rest: '😴', brick: '🔥' };
     const TYPE_BADGE = { run: 'badge-run', bike: 'badge-bike', swim: 'badge-swim', rest: '', brick: 'badge-run' };
     const INT_COLOR  = { z2: '#3DBA7A', z3: '#F5A623', intervals: '#E8354A', race: '#E8354A', rest: '#555' };
+
+    // Group by date
+    const byDate = {};
+    allSessions.forEach(s => {
+      const key = s.date || s.day;
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(s);
+    });
 
     const gen = this.#plan._generated
       ? new Date(this.#plan._generated).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
       : '';
 
+    const daysHTML = Object.entries(byDate).map(([dateKey, sessions]) => {
+      const first = sessions[0];
+      const isRest = sessions.every(s => s.type === 'rest');
+      const dateLabel = first.date
+        ? new Date(first.date+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'short'})
+        : '';
+
+      const sessionsHTML = sessions.map(s => `
+        <div class="wb-act" style="margin-bottom:8px">
+          <div class="wb-act-icon ${TYPE_BADGE[s.type]||''}">${TYPE_ICON[s.type]||'🏅'}</div>
+          <div class="wb-act-info">
+            <div class="wb-act-name">${s.session ? `<span style="font-size:10px;color:var(--text-secondary)">${s.session} · </span>` : ''}${s.title}</div>
+            <div class="wb-act-meta" style="color:${INT_COLOR[s.intensity]||'var(--text-secondary)'}">
+              ${s.duration}${s.distance ? ` · ${s.distance}` : ''}
+            </div>
+            <div class="ai-day-details" style="margin-top:4px">${s.details}</div>
+          </div>
+        </div>`).join('');
+
+      return `<div class="ai-day ${isRest ? 'ai-day-rest' : ''}${sessions.length > 1 ? ' ai-day-double' : ''}">
+          <div class="ai-day-header">
+            <span class="wb-day-label">${first.day?.slice(0,2).toUpperCase()}</span>
+            <span class="wb-day-date">${dateLabel}</span>
+            ${sessions.length > 1 ? '<span style="font-size:9px;color:#F5A623;font-weight:700">2x</span>' : ''}
+          </div>
+          <div class="ai-day-body">${sessionsHTML}</div>
+        </div>`;
+    }).join('');
+
     return `<div class="ai-plan-header">
         <span class="ai-plan-tag">🤖 KI Vorschlag</span>
         <span class="ai-plan-date">${gen}</span>
-        <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Neu generieren</button>
+        <button class="btn-strava-refresh" onclick="aiPlanGenerate()">↻ Neu</button>
       </div>
-      <div class="ai-plan-grid">
-        ${days.map(d => `
-          <div class="ai-day ${d.type === 'rest' ? 'ai-day-rest' : ''}">
-            <div class="ai-day-header">
-              <span class="wb-day-label">${d.day?.slice(0,2).toUpperCase()}</span>
-              <span class="wb-day-date">${d.date ? new Date(d.date+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'short'}) : ''}</span>
-            </div>
-            <div class="ai-day-body">
-              <div class="wb-act">
-                <div class="wb-act-icon ${TYPE_BADGE[d.type] || ''}">${TYPE_ICON[d.type] || '🏅'}</div>
-                <div class="wb-act-info">
-                  <div class="wb-act-name">${d.title}</div>
-                  <div class="wb-act-meta" style="color:${INT_COLOR[d.intensity]||'var(--text-secondary)'}">
-                    ${d.duration}
-                  </div>
-                </div>
-              </div>
-              <div class="ai-day-details">${d.details}</div>
-            </div>
-          </div>`).join('')}
-      </div>`;
+      <div class="ai-plan-grid">${daysHTML}</div>`;
   }
 }
