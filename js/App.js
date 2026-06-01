@@ -16,6 +16,7 @@ class App {
     this.#dashboard = new Dashboard(this.#store);
     this.#coach     = new Coach(this.#store);
     this.#healthSvc   = new HealthService();
+    this.#store.setHealthService(this.#healthSvc);
     this.#stravaSvc   = new StravaService();
     this.#trainingPlan = new TrainingPlan(this.#store, this.#stravaSvc, this.#healthSvc);
     this.#stravaUI    = new StravaUI(this.#stravaSvc, acts => {
@@ -183,6 +184,7 @@ class App {
         this.#dashboard.setStravaActivities(acts);
         this.#coach.setStravaActivities(acts);
         this.#trainingPlan.maybeGenerate(acts, this.#lastHealthData);
+        this.#healthSvc.syncStrava(acts);
       } catch (_) {}
     }
   }
