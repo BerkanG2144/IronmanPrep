@@ -106,7 +106,7 @@ DEIN JOB:
     if (!apiKey) return 'Bitte zuerst den Gemini API Key im Dashboard eingeben (KI Trainingsvorschlag → Key speichern). Den Key bekommst du kostenlos auf aistudio.google.com.';
 
     const context = this.#buildContext();
-    const isOAuth = !apiKey.startsWith('AIza');
+    const isOAuth = apiKey.startsWith('ya29.');
     const url = isOAuth
       ? `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent`
       : `${CoachService.#API_URL}/${CoachService.#MODEL}:generateContent?key=${apiKey}`;

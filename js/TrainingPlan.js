@@ -105,7 +105,7 @@ Antworte NUR mit einem JSON-Array, kein Text davor/danach:
 ]`;
 
     try {
-      const isOAuth = !apiKey.startsWith('AIza');
+      const isOAuth = apiKey.startsWith('ya29.');
       const url = isOAuth
         ? `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent`
         : `${TrainingPlan.#API_URL}/${TrainingPlan.#MODEL}:generateContent?key=${apiKey}`;
